@@ -20,7 +20,7 @@ The tree builds end to end: `mka bacon` produced
 vendor_boot, dtbo, vbmeta and the super images. What is left is on-device
 bring-up, not the build — see *Known gaps*. Every ROM-side fix the build needed
 is a patch in
-[xiaomi_zephyr_cusrom_patches](https://github.com/uzbforce/lineage_patches_zephyr).
+[lineage_patches_zephyr](https://github.com/uzbforce/lineage_patches_zephyr).
 
 | Piece | State |
 |---|---|
