@@ -16,11 +16,11 @@ Everything there was read out of the firmware, not from spec sheets.
 ## Status
 
 The tree builds end to end: `mka bacon` produced
-`lineage-23.2-20261028-UNOFFICIAL-zephyr.zip` plus boot, init_boot,
+`lineage-23.2-********-UNOFFICIAL-zephyr.zip` plus boot, init_boot,
 vendor_boot, dtbo, vbmeta and the super images. What is left is on-device
 bring-up, not the build — see *Known gaps*. Every ROM-side fix the build needed
 is a patch in
-[xiaomi_zephyr_cusrom_patches](https://github.com/uzbforce/xiaomi_zephyr_cusrom_patches).
+[xiaomi_zephyr_cusrom_patches](https://github.com/uzbforce/lineage_patches_zephyr).
 
 | Piece | State |
 |---|---|
