@@ -1,0 +1,52 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Xiaomi's HIDL display feature HAL
+# (/vendor/bin/hw/vendor.xiaomi.hardware.displayfeature@1.0-service). The
+# displayfeature daemon uses IDisplayFeature for panel brightness/feature
+# control, and the FOD high-brightness path goes through that daemon.
+#
+# It shipped unterminated: no exec label, no domain transition, no hwservice
+# label and no VINTF declaration, so init could not start it and getService()
+# would have been rejected even if it had. Stock labels the binary
+# hal_displayfeature_xiaomi_default_exec and the interface
+# hal_displayfeature_xiaomi_hwservice.
+type hal_displayfeature_xiaomi_default, domain;
+type hal_displayfeature_xiaomi_default_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(hal_displayfeature_xiaomi_default)
+hwbinder_use(hal_displayfeature_xiaomi_default)
+# The HAL registers with hwbinder but also opens /dev/binderfs/vndbinder at
+# start-up, which hwbinder_use() does not cover.
+vndbinder_use(hal_displayfeature_xiaomi_default)
+add_hwservice(hal_displayfeature_xiaomi_default, hal_displayfeature_xiaomi_hwservice)
+
+allow hal_displayfeature_xiaomi_default vendor_file:dir r_dir_perms;
+allow hal_displayfeature_xiaomi_default vendor_file:file { execute getattr map open read };
+
+allow hal_displayfeature_xiaomi_default vendor_sysfs_displayfeature:dir r_dir_perms;
+allow hal_displayfeature_xiaomi_default vendor_sysfs_displayfeature:file rw_file_perms;
+allow hal_displayfeature_xiaomi_default sysfs:file rw_file_perms;
+allow hal_displayfeature_xiaomi_default vendor_displayfeature_device:chr_file rw_file_perms;
+allow hal_displayfeature_xiaomi_default graphics_device:chr_file rw_file_perms;
+
+# SDM (the graphics composer) also resolves IDisplayFeature for panel features
+# and the FOD/local-HBM path. Without this it is denied find and returns null on
+# every screen/doze transition:
+#
+#   avc: denied { find } for interface=vendor.xiaomi.hardware.displayfeature::IDisplayFeature
+#     scontext=u:r:hal_graphics_composer_default:s0
+#     tcontext=u:object_r:hal_displayfeature_xiaomi_hwservice:s0 tclass=hwservice_manager
+#   CoreInterface::getDisplayFeatureService: Query DisplayFeature service returned null!
+allow hal_graphics_composer_default hal_displayfeature_xiaomi_hwservice:hwservice_manager find;
+binder_call(hal_graphics_composer_default, hal_displayfeature_xiaomi_default)
+
+# SDM writes the panel's brightness_clone node on each brightness update. The
+# node has its own type (see file.te and genfs_contexts), so this does not
+# widen composer access to the rest of the display feature subtree.
+allow hal_graphics_composer_default sysfs_brightness_clone:file w_file_perms;
+
+# Closed-source panel HAL with an undocumented sysfs surface.
+permissive hal_displayfeature_xiaomi_default;

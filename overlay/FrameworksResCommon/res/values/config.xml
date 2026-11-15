@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+
+<!--
+     Regenerated from product/overlay/FrameworksResCommon_Sys.apk of
+     zephyr_global_images_OS3.0.310.0.WBUMIXM_16.0 by tools/port-overlays.py.
+     The values are the ones the stock overlay itself carries.
+
+     Not carried over:
+     * config_bluetooth_hfp_inband_ringing_support:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_bluetooth_le_peripheral_mode_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_dozeAfterScreenOff:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_dual_bar:
+       MIUI framework-res addition, absent from LineageOS 23.2
+     * config_wifi_background_scan_support:
+       Qualcomm framework-res addition, absent from LineageOS 23.2 (on AOSP
+       the wifi module owns this setting)
+     * config_wifi_batched_scan_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_connected_mac_randomization_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_dual_band_support:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_dual_sap_mode_enabled:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_p2p_mac_randomization_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_softap_acs_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_wifi_softap_ieee80211ac_supported:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_emergency_apn:
+       Qualcomm framework-res addition, absent from LineageOS 23.2
+     * config_optionalPackageVerifierName:
+       MIUI: names "seemp.service", the HyperOS package verifier
+-->
+<resources>
+    <!-- The stock HyperOS curve stopped at 255 lux, so every ordinary lit room
+         (300-500 lux) and every overcast day already mapped to the last
+         control point and the panel sat at maximum brightness. The curve below
+         keeps the same 0-255 backlight scale but extends the lux levels into
+         the range the light sensor actually reports.
+
+         The first revision of this curve still bottomed out at 10 backlight,
+         which is also the framework's default screen brightness minimum, so a
+         dark room sat at 4% of full scale - still clearly lit at night, and
+         the auto output could not go any lower because it is clamped to that
+         minimum. The values below start at 3 and rise more gently through the
+         10-350 lux band, and config_screenBrightnessSettingMinimum is lowered
+         so the clamp does not undo the low end. -->
+    <integer-array name="config_autoBrightnessLcdBacklightValues" translatable="false">
+        <item>3</item>
+        <item>6</item>
+        <item>12</item>
+        <item>22</item>
+        <item>38</item>
+        <item>60</item>
+        <item>90</item>
+        <item>130</item>
+        <item>180</item>
+        <item>225</item>
+        <item>255</item>
+    </integer-array>
+    <integer-array name="config_autoBrightnessLevels" translatable="false">
+        <item>10</item>
+        <item>40</item>
+        <item>90</item>
+        <item>180</item>
+        <item>350</item>
+        <item>700</item>
+        <item>1200</item>
+        <item>2500</item>
+        <item>5000</item>
+        <item>10000</item>
+    </integer-array>
+
+    <!-- Auto-brightness output is clamped to the screen brightness range, so
+         without this the 3 above would be raised back to the AOSP default of
+         10 and the dark end of the curve would have no effect. 2 still keeps
+         the panel visibly lit at the minimum manual slider position. -->
+    <integer name="config_screenBrightnessSettingMinimum">2</integer>
+    <integer-array name="config_availableColorModes" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>3</item>
+        <item>256</item>
+        <item>257</item>
+        <item>258</item>
+        <item>259</item>
+        <item>260</item>
+        <item>261</item>
+        <item>262</item>
+        <item>263</item>
+        <item>264</item>
+        <item>265</item>
+        <item>266</item>
+        <item>267</item>
+        <item>268</item>
+        <item>269</item>
+        <item>270</item>
+        <item>271</item>
+        <item>272</item>
+        <item>273</item>
+        <item>274</item>
+        <item>275</item>
+        <item>276</item>
+        <item>277</item>
+        <item>278</item>
+        <item>279</item>
+        <item>280</item>
+        <item>281</item>
+        <item>282</item>
+        <item>283</item>
+        <item>284</item>
+        <item>285</item>
+        <item>286</item>
+        <item>287</item>
+        <item>288</item>
+        <item>293</item>
+    </integer-array>
+    <string-array name="config_mobile_tcp_buffers" translatable="false">
+        <item>5gnr:2097152,6291456,16777216,512000,2097152,8388608</item>
+        <item>lte:2097152,4194304,8388608,262144,524288,1048576</item>
+        <item>lte_ca:4096,6291456,12582912,4096,1048576,4194304</item>
+        <item>umts:4094,87380,1220608,4096,16384,1220608</item>
+        <item>hspa:4094,87380,1220608,4096,16384,1220608</item>
+        <item>hsupa:4094,87380,1220608,4096,16384,1220608</item>
+        <item>hsdpa:4094,87380,1220608,4096,16384,1220608</item>
+        <item>hspap:4094,87380,1220608,4096,16384,1220608</item>
+        <item>edge:4093,26280,35040,4096,16384,35040</item>
+        <item>gprs:4092,8760,11680,4096,8760,11680</item>
+        <item>evdo:4094,87380,524288,4096,16384,262144</item>
+    </string-array>
+    <string-array name="config_network_type_tcp_buffers" translatable="false">
+        <item>NR_SA_MMWAVE:2097152,6291456,16777216,512000,2097152,8388608</item>
+        <item>NR_SA:2097152,6291456,16777216,512000,2097152,8388608</item>
+        <item>NR_NSA_MMWAVE:2097152,6291456,16777216,512000,2097152,8388608</item>
+        <item>NR_NSA:2097152,6291456,16777216,512000,2097152,8388608</item>
+        <item>LTE:2097152,4194304,8388608,262144,524288,1048576</item>
+        <item>LTE_CA:4096,6291456,12582912,4096,1048576,4194304</item>
+        <item>UMTS:4094,87380,1220608,4096,16384,1220608</item>
+        <item>HSPA:4094,87380,1220608,4096,16384,1220608</item>
+        <item>HSUPA:4094,87380,1220608,4096,16384,1220608</item>
+        <item>HSDPA:4094,87380,1220608,4096,16384,1220608</item>
+        <item>HSPA+:4094,87380,1220608,4096,16384,1220608</item>
+        <item>EDGE:4093,26280,35040,4096,16384,35040</item>
+        <item>GPRS:4092,8760,11680,4096,8760,11680</item>
+        <item>EvDo_0:4094,87380,524288,4096,16384,262144</item>
+        <item>EvDo_A:4094,87380,524288,4096,16384,262144</item>
+        <item>EvDo_B:4094,87380,524288,4096,16384,262144</item>
+    </string-array>
+    <string-array name="config_tether_bluetooth_regexs" translatable="false">
+        <item>bnep\\d</item>
+        <item>bt-pan</item>
+    </string-array>
+    <string-array name="config_tether_dhcp_range" translatable="false">
+        <item>192.168.42.2</item>
+        <item>192.168.42.254</item>
+        <item>192.168.43.2</item>
+        <item>192.168.43.254</item>
+        <item>192.168.44.2</item>
+        <item>192.168.44.254</item>
+        <item>192.168.45.2</item>
+        <item>192.168.45.254</item>
+        <item>192.168.46.2</item>
+        <item>192.168.46.254</item>
+        <item>192.168.47.2</item>
+        <item>192.168.47.254</item>
+        <item>192.168.48.2</item>
+        <item>192.168.48.254</item>
+        <item>192.168.49.2</item>
+        <item>192.168.49.254</item>
+        <item>192.168.50.2</item>
+        <item>192.168.50.254</item>
+        <item>192.168.51.2</item>
+        <item>192.168.51.254</item>
+    </string-array>
+    <integer-array name="config_tether_upstream_types" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>5</item>
+        <item>7</item>
+    </integer-array>
+    <string-array name="config_tether_usb_regexs" translatable="false">
+        <item>usb\\d</item>
+        <item>rndis\\d</item>
+    </string-array>
+    <string-array name="config_tether_wifi_regexs" translatable="false">
+        <item>softap0</item>
+        <item>wlan0</item>
+    </string-array>
+    <string-array name="networkAttributes" translatable="false">
+        <item>wifi,1,1,1,-1,true</item>
+        <item>mobile,0,0,0,-1,true</item>
+        <item>mobile_mms,2,0,4,60000,true</item>
+        <item>mobile_supl,3,0,2,60000,true</item>
+        <item>mobile_dun,4,0,2,60000,true</item>
+        <item>mobile_hipri,5,0,3,60000,true</item>
+        <item>mobile_fota,10,0,2,60000,true</item>
+        <item>mobile_ims,11,0,2,60000,true</item>
+        <item>mobile_cbs,12,0,2,60000,true</item>
+        <item>bluetooth,7,7,2,-1,true</item>
+        <item>mobile_emergency,15,0,5,-1,true</item>
+        <item>ethernet,9,9,9,-1,true</item>
+    </string-array>
+    <string-array name="radioAttributes" translatable="false">
+        <item>1,1</item>
+        <item>0,1</item>
+        <item>7,1</item>
+    </string-array>
+    <string-array name="required_apps_managed_device" translatable="false">
+        <item>com.android.settings</item>
+        <item>com.android.systemui</item>
+        <item>com.android.contacts</item>
+        <item>org.codeaurora.dialer</item>
+        <item>com.android.stk</item>
+        <item>com.android.providers.downloads</item>
+        <item>com.android.providers.downloads.ui</item>
+        <item>com.android.documentsui</item>
+        <item>com.android.cellbroadcastreceiver</item>
+    </string-array>
+
+    <bool name="config_automatic_brightness_available">true</bool>
+    <bool name="config_camera_sound_forced">true</bool>
+    <bool name="config_carrier_volte_available">true</bool>
+    <bool name="config_cellBroadcastAppLinks">true</bool>
+    <bool name="config_device_volte_available">true</bool>
+    <bool name="config_device_vt_available">true</bool>
+    <bool name="config_device_wfc_ims_available">true</bool>
+    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+    <bool name="config_dozeAlwaysOnEnabled">false</bool>
+    <bool name="config_enableMultiUserUI">true</bool>
+    <bool name="config_enable_iwlan_handover_policy">false</bool>
+    <bool name="config_enhanced_iwlan_handover_check">false</bool>
+    <bool name="config_hotswapCapable">true</bool>
+    <bool name="config_powerDecoupleInteractiveModeFromDisplay">false</bool>
+    <bool name="config_setColorTransformAccelerated">true</bool>
+    <bool name="config_showNavigationBar">true</bool>
+    <bool name="config_sms_decode_gsm_8bit_data">true</bool>
+    <bool name="config_speed_up_audio_on_mt_calls">true</bool>
+    <bool name="config_stkNoAlphaUsrCnf">false</bool>
+    <bool name="config_supportAudioSourceUnprocessed">true</bool>
+    <bool name="config_switch_phone_on_voice_reg_state_change">false</bool>
+    <bool name="config_telephony5gNonStandalone">true</bool>
+    <bool name="config_telephony5gStandalone">true</bool>
+    <bool name="config_unplugTurnsOnScreen">true</bool>
+    <bool name="config_voice_data_sms_auto_fallback">true</bool>
+    <bool name="config_wifiDisplaySupportsProtectedBuffers">true</bool>
+    <bool name="skip_restoring_network_selection">true</bool>
+
+    <!-- zephyr's panel is 60/90/120 Hz, not 240 Hz as the stock HyperOS
+         overlay claimed; the wrong default made Settings offer refresh rates
+         the composer never reports. -->
+    <integer name="config_defaultPeakRefreshRate">120</integer>
+    <integer name="config_defaultRefreshRate">0</integer>
+    <integer name="config_default_cellular_usage_setting">-1</integer>
+    <integer name="config_multiuserMaximumUsers">4</integer>
+    <integer name="config_screenBrightnessDoze">17</integer>
+
+    <!-- Goodix under-display fingerprint sensor. The format is
+         {centerX, centerY, radius}, not the top-left corner the stock vendor
+         prop persist.vendor.sys.fp.fod.location.X_Y carries: that prop is
+         451,2109 for a 178x178 px sensor window, so the center is
+         451+89,2109+89 = 540,2198 and the radius stays 89. AuthService and
+         HidlFingerprintSensorConfig read this array to classify the HIDL 2.1
+         HAL as UNDER_DISPLAY_OPTICAL and to place the SystemUI icon, the
+         touch target and the lockscreen padlock. -->
+    <integer-array name="config_udfps_sensor_props" translatable="false">
+        <item>540</item>
+        <item>2198</item>
+        <item>89</item>
+    </integer-array>
+
+    <string name="config_dozeComponent" translatable="false">com.android.systemui/com.android.systemui.doze.DozeService</string>
+    <string name="config_mms_user_agent" translatable="false">Android-Mms/2.0</string>
+    <string name="config_mms_user_agent_profile_url" translatable="false">http://www.google.com/oha/rdf/ua-profile-kila.xml</string>
+    <string name="config_persistentDataPackageName" translatable="false">com.google.android.gms</string>
+    <string name="config_qualified_networks_service_package" translatable="false">vendor.qti.iwlan</string>
+    <string name="config_wlan_data_service_package" translatable="false">vendor.qti.iwlan</string>
+    <string name="config_wlan_network_service_package" translatable="false">vendor.qti.iwlan</string>
+</resources>

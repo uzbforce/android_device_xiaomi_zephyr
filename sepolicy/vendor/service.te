@@ -1,0 +1,15 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Xiaomi's display feature daemon (/vendor/bin/displayfeature) registers a
+# native binder service named "DisplayFeatureControl" with vndservicemanager.
+# The Goodix UDFPS HAL's libdisplayfeature.so looks that name up to drive FOD
+# high-brightness mode, and stock ships a rule set for it. Left unmapped the
+# name falls back to default_android_service, which carries
+#
+#   neverallow * default_android_service:service_manager *
+#
+# so neither add nor find can ever be granted.
+type hal_displayfeature_service, vndservice_manager_type;

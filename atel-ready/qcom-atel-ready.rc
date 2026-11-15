@@ -1,0 +1,27 @@
+# qcril only releases incoming SMS once it has been told that the telephony UI
+# is ready, and it forgets that flag whenever qcrild restarts. Stock sends the
+# hook from QtiTelephony, which does not work on this build (see the comment in
+# qcom-atel-ready.cpp), so this one-shot helper sends it instead.
+#
+# This is a system_ext service, not a vendor one: qcrilhook is registered with
+# the system servicemanager, and a vendor binary links vendor libbinder, whose
+# Parcel header (VNDR) the system servicemanager rejects (SYST).
+#
+# The service deliberately has no "disabled" flag: on the first boot with this
+# helper the boot_completed trigger did not fire and the helper never ran, so
+# start automatically with late_start and keep the explicit triggers as extra
+# fallbacks. The helper polls for up to three minutes if qcrilhook is not up yet.
+on boot
+    start qcom-atel-ready
+
+on property:init.svc.vendor.qcrild=running
+    start qcom-atel-ready
+
+on property:sys.boot_completed=1
+    start qcom-atel-ready
+
+service qcom-atel-ready /system_ext/bin/qcom-atel-ready
+    class late_start
+    user radio
+    group radio
+    oneshot

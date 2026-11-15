@@ -1,0 +1,7 @@
+# The prebuilt QTI camera provider reads/writes its sensor nodes under sysfs
+# (rear_qvga, cam_name), searches the /vendor mount and publishes its
+# configuration through vendor.camera.* properties.
+
+allow hal_camera_default mnt_vendor_file:dir search;
+allow hal_camera_default sysfs:file rw_file_perms;
+allow hal_camera_default vendor_default_prop:property_service set;

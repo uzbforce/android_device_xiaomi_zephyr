@@ -1,0 +1,14 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# The vibrator LED is the qpnp-vibrator-ldo at
+# /sys/devices/platform/soc/soc:vibrator_gpio/leds/vibrator, reached through
+# the /sys/class/leds/vibrator symlink. The genfscon labels the LED directory
+# and its runtime attributes as sysfs_leds; the symlink and intermediate
+# /sys/devices/... directories stay sysfs. Without read access to those,
+# open(activate) is denied during path resolution even though the
+# sysfs_leds rules match the final node.
+allow hal_vibrator_default sysfs:dir r_dir_perms;
+allow hal_vibrator_default sysfs:lnk_file r_file_perms;

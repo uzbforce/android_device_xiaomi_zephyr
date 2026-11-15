@@ -1,0 +1,2 @@
+# Telephony helper that tells qcril the UI is ready; see qcom_atel_ready.te.
+/system_ext/bin/qcom-atel-ready u:object_r:qcom_atel_ready_exec:s0

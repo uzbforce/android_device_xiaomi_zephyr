@@ -1,0 +1,13 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# The sensor SSC daemon (sscrpcd) reads the touch controller's ear/near value
+# from /proc/tp_proximity_data and writes /proc/tp_proximity_switch to enable
+# the touch controller's proximity reporting for the sensor DSP. That stream is
+# the source of android.sensor.proximity on this device, so the in-call ear
+# detector (proximity screen-off) depends on both the read and the write. Both
+# nodes share proc_tp_proximity_data; see file.te for the denials that repeat
+# while the proximity sensor is armed.
+allow vendor_sensors proc_tp_proximity_data:file rw_file_perms;

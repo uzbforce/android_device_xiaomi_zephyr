@@ -1,0 +1,19 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# Keep the large-composition perf hint off. This is only defence in depth: the
+# crash itself is fixed by patching the hint function out of the prebuilt
+# composer (tools/patch-composer-hint.py), because CPUHint::Init() fails here
+# and the hint path dereferences the resulting null cpu_hint_ regardless of
+# this property:
+#
+#     hwc_display->HandleLargeCompositionHint(!NeedsLargeCompPerfHint());
+#     NeedsLargeCompPerfHint(): if (!cpu_hint_) return false;   -> hint runs
+#     HandleLargeCompositionHint(true): ldr w8, [cpu_hint_, #0x58]  -> SIGSEGV
+#
+# The shipped /vendor/bin/init.qti.display_boot.sh raises this property from
+# on post-fs-data for bengal (soc ids 417/420/444/445), so force it back off
+# for any consumer that does honour it.
+on property:vendor.display.enable_perf_hint_large_comp_cycle=1
+    setprop vendor.display.enable_perf_hint_large_comp_cycle 0

@@ -1,0 +1,23 @@
+cc_binary {
+    name: "qcom-atel-ready",
+    system_ext_specific: true,
+
+    srcs: [
+        "qcom-atel-ready.cpp",
+    ],
+
+    shared_libs: [
+        "libbinder",
+        "liblog",
+        "libutils",
+    ],
+
+    init_rc: [
+        "qcom-atel-ready.rc",
+    ],
+
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}

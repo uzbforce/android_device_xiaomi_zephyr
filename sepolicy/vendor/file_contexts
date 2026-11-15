@@ -1,0 +1,70 @@
+# Placeholder: vendor SELinux policy for zephyr lands here.
+# device/qcom/sepolicy_vndr/sm6225 carries the platform policy for now.
+
+# The platform labels android.hardware.power-service (the stock name) and the
+# AOSP example, not the QTI source build. Without this the binary falls back to
+# vendor_file, init finds no domain transition for it, and ctl.interface_start
+# for IPower/default fails, which leaves system_server blocked in
+# PowerManagerService.nativeInit.
+/(vendor|system/vendor)/bin/hw/android\.hardware\.power-service-qti    u:object_r:hal_power_default_exec:s0
+
+# The BT audio provider factory registers hal_audio_service
+# (private/service_contexts), needs binder_call() to servicemanager and to the
+# QTI bluetooth_audio HIDL service, and dlopens a vendor library - all of which
+# hal_audio_default already has. Without this label init finds no transition and
+# the service runs in the init domain.
+/(vendor|system/vendor)/bin/hw/android\.hardware\.bluetooth\.audio-service  u:object_r:hal_audio_default_exec:s0
+
+# Xiaomi's thermal daemon; see mi_thermald.te. init.mi_thermald.rc requests the
+# mi_thermald domain by name via seclabel, so without this label the exec type
+# has no transition and setexeccon fails.
+/(vendor|system/vendor)/bin/mi_thermald      u:object_r:mi_thermald_exec:s0
+
+# The fingerprint HAL is built from source
+# (hardware/lineage/interfaces/biometrics/fingerprint/aidl) and deliberately
+# reuses hal_fingerprint_default so that every device-node rule in
+# hal_fingerprint_default.te applies to it unchanged.
+# The AIDL binary itself is already labelled hal_fingerprint_default_exec by
+# device/lineage/sepolicy/common/vendor/file_contexts, so only the device-node
+# rules in hal_fingerprint_default.te are added here.
+
+# Goodix calibration data, read by qseecomd for the fingerprint TA. Stock
+# labels this path with the same type; see file.te for the symptom when the
+# label is missing.
+/mnt/vendor/persist/goodix(/.*)?    u:object_r:vendor_fingerprint_data_file:s0
+
+# /dev/xiaomi-fp is the goodix FOD driver's control node. ueventd labels the
+# node from this file; the generic "device" label is never granted to
+# hal_fingerprint_default, so the HAL cannot open it.
+/dev/xiaomi-fp      u:object_r:xiaomi_fp_device:s0
+
+# Xiaomi display feature stack, needed for FOD high-brightness mode. Both
+# binaries ship as plain vendor_file blobs, so without these labels init starts
+# them untransitioned and the HIDL interface is never registered.
+/(vendor|system/vendor)/bin/hw/vendor\.xiaomi\.hardware\.displayfeature@1\.0-service u:object_r:hal_displayfeature_xiaomi_default_exec:s0
+/(vendor|system/vendor)/bin/displayfeature u:object_r:displayfeature_exec:s0
+
+# Xiaomi touch feature HAL; see hal_touchfeature_xiaomi_default.te. Same
+# situation as the display feature stack: shipped as a plain vendor_file blob,
+# so init had no transition and the FOD arming path never ran.
+/(vendor|system/vendor)/bin/hw/vendor\.xiaomi\.hardware\.touchfeature@1\.0-service u:object_r:hal_touchfeature_xiaomi_default_exec:s0
+
+# /dev/xiaomi-touch is the xiaomi_tp driver's command node, opened by the touch
+# feature HAL. Its default label is the generic "device" type, which no vendor
+# domain is allowed to open.
+/dev/xiaomi-touch  u:object_r:xiaomi_touch_device:s0
+
+
+# Control node written by the display daemon. sysfs is covered by the genfscon
+# in displayfeature.te.
+/dev/mi_display/disp_feature      u:object_r:vendor_displayfeature_device:s0
+
+# Xiaomi charging HAL; see hal_micharge_default.te. The binary shipped as a
+# plain vendor_file blob, so init found no domain transition and the service
+# never started (lshal shows IMiCharge dead).
+/(vendor|system/vendor)/bin/hw/vendor\.xiaomi\.hardware\.micharge@1\.0-service u:object_r:hal_micharge_default_exec:s0
+
+# Xiaomi battery anti-aging daemon; see hal_batteryantiaging.te. Its rc sets
+# the domain with seclabel, but labeling the binary keeps the normal
+# init_daemon_domain transition available as well.
+/(vendor|system/vendor)/bin/hw/vendor\.xiaomi\.hardware\.batteryantiaging-service u:object_r:hal_batteryantiaging_default_exec:s0

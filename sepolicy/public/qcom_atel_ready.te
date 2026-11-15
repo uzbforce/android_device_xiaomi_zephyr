@@ -1,0 +1,12 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# qcom-atel-ready is a system_ext helper that sends the
+# QCRIL_EVT_HOOK_SET_ATEL_UI_STATUS OEM hook to qcril; see
+# atel-ready/qcom-atel-ready.cpp. The domain is declared here, in public
+# system_ext policy, because the vendor policy has to grant it access to the
+# vendor-owned qcrilhook service type (vendor_hal_telephony_service2). The
+# system_ext-only rules and the exec type live in sepolicy/private.
+type qcom_atel_ready, domain, coredomain;

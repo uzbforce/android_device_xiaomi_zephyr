@@ -1,0 +1,182 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# The stock Goodix UDFPS HAL (android.hardware.biometrics.fingerprint@2.1-
+# service-lx) is shipped as a vendor_file blob, so the exec type and the
+# init->domain transition live in the device file_contexts. This file adds the
+# device nodes and vendor files the HAL opens once it is running.
+
+# Control node created by Xiaomi's goodix driver (vendor_dlkm); see the
+# file_contexts entry.
+type xiaomi_fp_device, dev_type;
+allow hal_fingerprint_default xiaomi_fp_device:chr_file rw_file_perms;
+
+# FOD illumination: the HAL writes the brightness and screen-on state to
+# /sys/class/mi_display/disp-DSI-0/disp_param, which has no dedicated genfscon
+# and therefore falls back to the generic sysfs label. The stock rule set only
+# grants read access to sysfs.
+allow hal_fingerprint_default sysfs:file rw_file_perms;
+
+# Calibration and template data live on the persist partition, mounted at
+# /mnt/vendor/persist (mnt_vendor_file). The stock rc creates the
+# fingerprint/ directory as system:system at post-fs-data.
+allow hal_fingerprint_default mnt_vendor_file:dir rw_dir_perms;
+allow hal_fingerprint_default mnt_vendor_file:file create_file_perms;
+
+# UDFPS touch reporting: the HAL opens /dev/uinput and creates the uinput-goodix
+# input device, which the idc files in /vendor/usr/idc describe.
+allow hal_fingerprint_default uhid_device:chr_file rw_file_perms;
+
+# The HAL reads the touch panel's capabilities through the input subsystem.
+allow hal_fingerprint_default input_device:dir r_dir_perms;
+
+# Fingerprint extension HIDL service lives in the same process; allow it to
+# serve its own hwservice as well as the biometrics one.
+allow hal_fingerprint_default hal_fingerprint_hwservice:hwservice_manager add;
+
+# TEE access. The Goodix HAL opens /dev/qseecom to reach the fingerprint TA and
+# exits immediately when the open fails. Without this rule init reports
+# "vendor.fps_hal: restarting" once every five seconds and the framework never
+# sees a fingerprint sensor.
+allow hal_fingerprint_default tee_device:chr_file rw_file_perms;
+
+# libQSEEComAPI stages the TA command and response buffers in the qseecom TA
+# dmabuf heap (/dev/qcom,qseecom-ta), so loading the Goodix TA touches this
+# node right after FP_IOC_RESET. Denied, the TA never loads and the HAL exits:
+#
+#   avc: denied { read } for comm="android.hardwar" name="qcom,qseecom-ta"
+#     scontext=u:r:hal_fingerprint_default:s0
+#     tcontext=u:object_r:vendor_dmabuf_qseecom_ta_heap_device:s0 tclass=chr_file
+allow hal_fingerprint_default vendor_dmabuf_qseecom_ta_heap_device:chr_file rw_file_perms;
+
+# Once the TA is up, QSEECom allocates the client buffers for every later
+# request from the ordinary qseecom heap. Denied, the HAL answers the first
+# binder call and then stalls the whole biometrics scheduler:
+#
+#   avc: denied { read } for comm="HwBinder:29304_" name="qcom,qseecom"
+#     scontext=u:r:hal_fingerprint_default:s0
+#     tcontext=u:object_r:vendor_dmabuf_qseecom_heap_device:s0 tclass=chr_file
+allow hal_fingerprint_default vendor_dmabuf_qseecom_heap_device:chr_file rw_file_perms;
+
+# The HAL bumps vendor.fps_hal.restartimes before it exits, to let init's
+# restart limit count the crash loop.
+set_prop(hal_fingerprint_default, vendor_default_prop)
+
+# The HAL publishes the sensor vendor it detected as persist.vendor.sys.fp.vendor
+# and reads it back on the next boot. The device property_contexts (ported from
+# the stock image) labels vendor.sys.* as vendor_system_prop, so the stock rules
+# for this domain, which only grant vendor_default_prop, are not enough.
+set_prop(hal_fingerprint_default, vendor_system_prop)
+allow hal_fingerprint_default vendor_system_prop:file r_file_perms;
+
+# The HAL derives the sensor type from the device tree, so it walks into
+# /sys/devices/soc0 (vendor_sysfs_devicetree_soc) before reading the
+# fingerprint node below it.
+allow hal_fingerprint_default vendor_sysfs_devicetree_soc:dir r_dir_perms;
+
+# The blob registers two HIDL vendor extensions in the same process:
+# vendor.xiaomi.hardware.fx.tunnel::IMiFxTunnel and
+# vendor.xiaomi.hardware.fingerprintextension::IXiaomiFingerprint.
+#
+# An interface with no hwservice_contexts entry is labeled
+# default_android_hwservice, and that type carries a blanket
+#
+#   neverallow * default_android_hwservice:hwservice_manager *
+#
+# so it can never be granted. Both interfaces therefore get vendor labels of
+# their own (hwservice.te / hwservice_contexts). Denied, hwservicemanager
+# refuses getTransport(), libhidltransport reports it as a missing VINTF entry,
+# and the HAL treats the failure as fatal:
+#
+#   avc: denied { find } for interface=vendor.xiaomi.hardware.fx.tunnel::IMiFxTunnel
+#     scontext=u:r:hal_fingerprint_default:s0
+#     tcontext=u:object_r:default_android_hwservice:s0 tclass=hwservice_manager
+#   HidlServiceManagement: Service vendor.xiaomi.hardware.fx.tunnel@1.0::IMiFxTunnel/default
+#     must be in VINTF manifest in order to register/get.
+#   [GF_HAL][registerHwBinderService]: Couldn't register MiFxTunnel binder service!
+#   [GF_HAL][registerHwBinderService]: [registerDaemonService] exit. err=GF_ERROR_GENERIC, errno=1012
+#   init: Service 'vendor.fps_hal' (pid 15847) exited with status 1
+allow hal_fingerprint_default hal_xiaomi_fx_tunnel_hwservice:hwservice_manager { find add };
+allow hal_fingerprint_default hal_xiaomi_fingerprint_extension_hwservice:hwservice_manager { find add };
+
+# UDFPS touch reporting: the FOD engine thread opens the raw input devices to
+# see the finger-down event on the panel. Without it the enrollment screen sits
+# waiting for a touch that never arrives.
+#
+#   avc: denied { read write } for comm="FodEngineCore_T" name="event4"
+#     scontext=u:r:hal_fingerprint_default:s0 tcontext=u:object_r:input_device:s0
+allow hal_fingerprint_default input_device:chr_file rw_file_perms;
+
+# The goodix driver reports its interrupts to userspace over netlink
+# (fp_netlink_send in the kernel log), so the HAL learns about a finger on the
+# sensor only if it can create that socket.
+#
+#   avc: denied { create } for comm="android.hardwar"
+#     scontext=u:r:hal_fingerprint_default:s0 tclass=netlink_socket
+allow hal_fingerprint_default self:netlink_socket create_socket_perms;
+
+# Goodix factory calibration (see file.te). The HAL reads the file through the
+# TA, and may replace it when calibration is refreshed.
+allow hal_fingerprint_default vendor_fingerprint_data_file:dir rw_dir_perms;
+allow hal_fingerprint_default vendor_fingerprint_data_file:file rw_file_perms;
+
+# Template storage. Session's constructor passes
+# "/data/vendor_de/<user>/fpdata/" to set_active_group(), and
+# system/sepolicy/private/file_contexts labels exactly that path
+# fingerprint_vendor_data_file. Nothing in AOSP grants a fingerprint domain
+# access to it - the HIDL blob never used the path, so the device never needed
+# the rule - and without it the HAL cannot even create the directory, which
+# makes set_active_group() fail before any capture is attempted:
+#
+#   avc: denied { create } for scontext=u:r:hal_fingerprint_default:s0
+#     tcontext=u:object_r:fingerprint_vendor_data_file:s0 tclass=dir
+allow hal_fingerprint_default fingerprint_vendor_data_file:dir rw_dir_perms;
+allow hal_fingerprint_default fingerprint_vendor_data_file:file create_file_perms;
+
+# The AIDL HAL is a binder service in its own process (unlike the HIDL blob,
+# which registered under the same hwservice names through libhidltransport), so
+# it needs the vndbinder/service_manager side of the biometrics interface as
+# well.
+allow hal_fingerprint_default hal_fingerprint_service:service_manager add;
+
+# FOD high-brightness mode. libdisplayfeature.so looks up the native service
+# DisplayFeatureControl in vndservicemanager (provided by /vendor/bin/displayfeature),
+# which in turn talks to vendor.xiaomi.hardware.displayfeature@1.0. Without these
+# the lookup fails and HBM silently never turns on:
+#
+#   displayfeatureservice access denied: command=%d pid=%d uid=%d
+vndbinder_use(hal_fingerprint_default)
+allow hal_fingerprint_default hal_displayfeature_service:service_manager find;
+binder_call(hal_fingerprint_default, displayfeature)
+allow hal_fingerprint_default hal_displayfeature_xiaomi_hwservice:hwservice_manager find;
+binder_call(hal_fingerprint_default, hal_displayfeature_xiaomi_default)
+
+# The HAL pokes the panel nodes directly while arming FOD
+# (/sys/class/mi_display/disp-DSI-0/disp_param and friends). Only sysfs *files*
+# were ever granted, so the walk down to them is denied before the open is
+# even attempted:
+#
+#   avc: denied { search } for comm="android.hardwar" name="disp_feature"
+#     scontext=u:r:hal_fingerprint_default:s0 tcontext=u:object_r:sysfs:s0
+#     tclass=dir
+allow hal_fingerprint_default sysfs:dir r_dir_perms;
+
+# Local HBM. With /dev/mi_display/disp_feature now present (ueventd subsystem
+# block in vendor/etc/ueventd.rc), libmifpext opens it to drive FOD brightness
+# itself, alongside the DisplayFeatureControl service it already reaches above.
+allow hal_fingerprint_default vendor_displayfeature_device:chr_file rw_file_perms;
+
+# FOD touch arming. libmifpext reaches the touch controller through
+# vendor.xiaomi.hardware.touchfeature::ITouchFeature: it resolves the service at
+# FOD-engine start and, on failure, logs
+#
+#   Query ITouchFeature service returned null!
+#
+# and carries on without ever putting the touch IC into FOD mode. The driver then
+# never raises /sys/class/touch/touch_dev/fod_press_status, so the enrollment
+# sits at "waiting for finger" for 60 s and the framework cancels it. The
+# displayfeature counterpart was already granted; this one was missing.
+allow hal_fingerprint_default hal_touchfeature_xiaomi_hwservice:hwservice_manager find;
+binder_call(hal_fingerprint_default, hal_touchfeature_xiaomi_default)

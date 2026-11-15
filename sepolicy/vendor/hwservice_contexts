@@ -1,0 +1,17 @@
+# Xiaomi HIDL vendor extensions registered by the stock Goodix fingerprint HAL
+# (android.hardware.biometrics.fingerprint@2.1-service-lx). Without an entry the
+# interfaces fall back to default_android_hwservice, which is protected by
+# neverallow * default_android_hwservice:hwservice_manager * and can never be
+# granted to hal_fingerprint_default.
+vendor.xiaomi.hardware.fx.tunnel::IMiFxTunnel                   u:object_r:hal_xiaomi_fx_tunnel_hwservice:s0
+vendor.xiaomi.hardware.fingerprintextension::IXiaomiFingerprint u:object_r:hal_xiaomi_fingerprint_extension_hwservice:s0
+
+# Xiaomi display feature HAL, used by /vendor/bin/displayfeature.
+vendor.xiaomi.hardware.displayfeature::IDisplayFeature         u:object_r:hal_displayfeature_xiaomi_hwservice:s0
+
+# Xiaomi touch feature HAL; see hal_touchfeature_xiaomi_default.te.
+vendor.xiaomi.hardware.touchfeature::ITouchFeature            u:object_r:hal_touchfeature_xiaomi_hwservice:s0
+
+# Xiaomi charging HAL; see hal_micharge_default.te. Without an entry the
+# interface falls back to default_android_hwservice and can never be granted.
+vendor.xiaomi.hardware.micharge::IMiCharge                     u:object_r:hal_micharge_hwservice:s0

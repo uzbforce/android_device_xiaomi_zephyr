@@ -1,0 +1,12 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# /sys/devices/virtual/mi_display/disp_feature/disp-DSI-0/brightness_clone
+# is written by the graphics composer on every brightness update. The type is
+# public because both system_ext (init's chown) and vendor (the genfs label and
+# composer rule) need to reference it. Keep the rest of the display feature
+# subtree on its generic labels so the FOD path and the permissive display
+# feature daemons are unaffected.
+type sysfs_brightness_clone, fs_type, sysfs_type;

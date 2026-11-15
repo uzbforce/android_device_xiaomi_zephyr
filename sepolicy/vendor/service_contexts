@@ -1,0 +1,4 @@
+# Xiaomi battery anti-aging AIDL service; see hal_batteryantiaging.te.
+# Without this entry registration falls back to default_android_service, which
+# no vendor domain is allowed to add.
+vendor.xiaomi.hardware.batteryantiaging.IBatteryAntiAging/default u:object_r:hal_batteryantiaging_service:s0

@@ -1,0 +1,23 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# zephyr's battery/usb/bms/sc-cp power supplies are created by Xiaomi's own
+# charger driver (soc:lx_chg_manager) and the two I2C charger ICs, so they miss
+# the QCOM genfs paths that device/qcom/sepolicy_vndr labels as
+# vendor_sysfs_battery_supply. sepolicy/vendor/genfs_contexts labels them
+# sysfs_batteryinfo, but those vendor genfscon entries do not reach the policy
+# that is actually loaded at boot here -- the plat genfs entries do, the vendor
+# ones (including QCOM's) do not -- so the files keep the generic sysfs label
+# and the HAL is denied:
+#
+#   avc: denied { read } for comm="android.hardwar" name="capacity"
+#     scontext=u:r:hal_health_default:s0 tcontext=u:object_r:sysfs:s0
+#     tclass=file
+#
+# With the denial in place BatteryMonitor finds no battery at all: level 0,
+# present=false, no voltage, temperature or technology. With SELinux permissive
+# the same build reports 89%, 4.334 V, present=true, USB powered. Grant the
+# read directly so battery works in enforcing mode; genfs_contexts stays as the
+# preferred fix for whenever the labels start landing in the loaded policy.
+allow hal_health_server sysfs:file r_file_perms;

@@ -1,0 +1,14 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# /sys/class/leds/vibrator is a symlink into
+# /sys/devices/platform/soc/soc:vibrator_gpio/leds/vibrator. The transient
+# trigger creates activate/duration/state at runtime. init selects the trigger
+# and chowns the attributes before the HAL probes them, so init needs to
+# traverse the class symlink and the LED directory in addition to the file
+# operations already granted by the platform init policy.
+allow init sysfs_leds:dir r_dir_perms;
+allow init sysfs_leds:lnk_file r_file_perms;
+allow init sysfs_leds:file { open read write getattr setattr };

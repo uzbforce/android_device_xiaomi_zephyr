@@ -1,0 +1,7 @@
+ro.vendor.qti.va_odm.support=1
+
+# Restored from the stock odm/etc/build.prop. ro.vendor.localhbm.enable lives
+# in vendor.prop; these two are the other half of the panel's FOD brightness
+# setup and the stock FOD monitor frame rate.
+ro.vendor.hbm_backlight.enable=true
+ro.vendor.display.fod_monitor_default_fps=120

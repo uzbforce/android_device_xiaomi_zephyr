@@ -1,0 +1,22 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# qcom-atel-ready is a system_ext helper (see atel-ready/Android.bp) that sends
+# the QCRIL_EVT_HOOK_SET_ATEL_UI_STATUS OEM hook to qcril. Without it qcril holds
+# every incoming SMS in its power optimisation buffer and drops it
+# unacknowledged; see the comment in atel-ready/qcom-atel-ready.cpp.
+#
+# The domain is declared in sepolicy/public/qcom_atel_ready.te because this
+# vendor policy has to reference it. The helper runs against the system
+# servicemanager, where qcrild publishes
+# vendor.qti.hardware.radio.qcrilhook.IQtiOemHook/oemhook{0,1}. The
+# service_manager entry is labeled vendor_hal_telephony_service2, but the
+# binder call itself lands in the qcrild process, which runs as rild; without
+# the rild rule every oemHookRawRequest fails with PERMISSION_DENIED and qcril
+# never learns that the telephony UI is ready.
+allow qcom_atel_ready vendor_hal_telephony_service2:service_manager find;
+
+binder_call(qcom_atel_ready, vendor_hal_telephony_service2)
+binder_call(qcom_atel_ready, rild)

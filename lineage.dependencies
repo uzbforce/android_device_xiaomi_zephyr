@@ -1,0 +1,7 @@
+[
+  {
+    "repository": "uzbforce/android_vendor_xiaomi_zephyr",
+    "target_path": "vendor/xiaomi/zephyr",
+    "branch": "lineage-23.2"
+  }
+]

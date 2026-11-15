@@ -1,0 +1,68 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# zephyr's battery and charger nodes are not the QCOM pmic_glink/smb5 supplies
+# that device/qcom/sepolicy_vndr/sm6225 labels as vendor_sysfs_battery_supply.
+# They are created by Xiaomi's own charger driver (soc:lx_chg_manager) and by
+# the two I2C charger ICs, so they match none of those genfscon paths and fall
+# back to the generic sysfs label.
+#
+# hal_health_server is granted `sysfs:dir r_dir_perms` (it can list
+# /sys/class/power_supply) but only r_dir_file() on sysfs_batteryinfo, so every
+# read of the actual values is denied and BatteryMonitor ends up with an empty
+# HealthInfo: battery present=false, level=0, voltage=0, status/health UNKNOWN,
+# which is exactly what BatteryService reports and why the battery UI is blank.
+# With SELinux permissive the same build reads 88%, 4.301 V, 35.7 C:
+#
+#   avc: denied { open } for comm="android.hardwar"
+#     path="/sys/devices/platform/soc/soc:lx_chg_manager/power_supply/battery/capacity"
+#     scontext=u:r:hal_health_default:s0 tcontext=u:object_r:sysfs:s0 tclass=file
+#
+# sysfs_batteryinfo is the type AOSP defines for /sys/class/power_supply files:
+# hal_health.te already applies r_dir_file(hal_health_server, sysfs_batteryinfo)
+# and charger/recovery get the same rule, so labelling is the entire fix.
+#
+# Use readlink -f on /sys/class/power_supply/* to re-derive these paths; they
+# follow the kernel driver that creates the supply, not the charger model.
+genfscon sysfs /devices/platform/soc/soc:lx_chg_manager/power_supply/battery u:object_r:sysfs_batteryinfo:s0
+genfscon sysfs /devices/platform/soc/soc:lx_chg_manager/power_supply/usb u:object_r:sysfs_batteryinfo:s0
+genfscon sysfs /devices/platform/soc/4ac0000.qcom,qupv3_0_geni_se/4a84000.i2c/i2c-1/1-0055/power_supply/bms u:object_r:sysfs_batteryinfo:s0
+
+# /proc/tp_proximity_{data,switch}: the touch panel's near/far source and the
+# switch sscrpcd writes to enable it for the sensor DSP; see file.te and
+# vendor_sensors.te. Both must be labelled: without the switch label the
+# daemon's write falls back to proc and is denied, so the proximity stream
+# never starts and in-call ear detection cannot blank the screen. genfscon
+# paths are relative to /proc.
+genfscon proc /tp_proximity_data u:object_r:proc_tp_proximity_data:s0
+genfscon proc /tp_proximity_switch u:object_r:proc_tp_proximity_data:s0
+genfscon sysfs /devices/platform/soc/4ac0000.qcom,qupv3_0_geni_se/4a80000.i2c/i2c-0/0-0061/power_supply/sc-cp-master u:object_r:sysfs_batteryinfo:s0
+
+# Label only brightness_clone in the mi_display subtree. The composer HAL
+# writes this node on every brightness change, while the rest of disp_feature
+# is used by the FOD and display feature paths. Labelling the whole subtree
+# would move those nodes away from hal_fingerprint_default's generic sysfs
+# rules; the exact file label gives the composer a narrow write rule instead:
+#
+#   avc: denied { write } for comm="HwBinder:1321_2" name="brightness_clone"
+#     scontext=u:r:hal_graphics_composer_default:s0 tclass=file
+#
+# The display feature daemons stay unaffected because both their domains are
+# permissive and keep their existing access.
+genfscon sysfs /devices/virtual/mi_display/disp_feature/disp-DSI-0/brightness_clone u:object_r:sysfs_brightness_clone:s0
+#
+# The vibrator on zephyr is the GPIO-enabled qpnp-vibrator-ldo at
+# /soc/vibrator_gpio, enumerated as platform device soc:vibrator_gpio. Its
+# LED class is /sys/class/leds/vibrator, whose target is
+# /sys/devices/platform/soc/soc:vibrator_gpio/leds/vibrator.
+#
+# The transient trigger creates activate/duration/state at runtime. Label the
+# LED directory and every attribute the init trigger setup and the HAL touch;
+# a directory label does not propagate to the class attributes.
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator u:object_r:sysfs_leds:s0
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator/trigger u:object_r:sysfs_leds:s0
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator/activate u:object_r:sysfs_leds:s0
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator/duration u:object_r:sysfs_leds:s0
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator/state u:object_r:sysfs_leds:s0
+genfscon sysfs /devices/platform/soc/soc:vibrator_gpio/leds/vibrator/brightness u:object_r:sysfs_leds:s0

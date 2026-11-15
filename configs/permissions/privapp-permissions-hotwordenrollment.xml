@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SPDX-FileCopyrightText: The LineageOS Project
+    SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+    The two Hotword Enrollment APKs are stock /product priv-apps, carried over
+    from the HyperOS system image, and are signed with Xiaomi's platform key
+    rather than ours. They request two signature|privileged permissions that no
+    AOSP or Lineage allowlist fragment covers, and LineageOS enables
+    ro.control_privapp_permissions=enforce, so system_server aborted while
+    reading the package config:
+
+      java.lang.IllegalStateException: Signature|privileged permissions not in
+      privileged permission allowlist: {com.android.hotwordenrollment.xgoogle
+      (/product/priv-app/HotwordEnrollmentXGoogleHEXAGON_WIDEBAND): ...}
+
+    SystemServer restarts on that exception, which is what kept the device on
+    the boot animation. Stock shipped ro.control_privapp_permissions=disable,
+    so its own build never hit this.
+-->
+<permissions>
+    <privapp-permissions package="com.android.hotwordenrollment.xgoogle">
+        <permission name="android.permission.INTERACT_ACROSS_USERS" />
+        <permission name="android.permission.KEYPHRASE_ENROLLMENT_APPLICATION" />
+    </privapp-permissions>
+
+    <privapp-permissions package="com.android.hotwordenrollment.okgoogle">
+        <permission name="android.permission.INTERACT_ACROSS_USERS" />
+        <permission name="android.permission.KEYPHRASE_ENROLLMENT_APPLICATION" />
+    </privapp-permissions>
+</permissions>

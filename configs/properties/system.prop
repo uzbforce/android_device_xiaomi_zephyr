@@ -1,0 +1,13 @@
+ro.hardware.keystore_desede=true
+ro.sf.lcd_density=420
+
+# Build the encoder input surface in-process instead of asking the firmware's
+# HIDL Codec2 store for one. That call never returns (Codec2Client blocks inside
+# IComponentStore::createInputSurface until CCodec's watchdog fires), which broke
+# every Surface-to-encoder path: screenrecord wrote 0-byte files and the camera's
+# video mode froze the viewfinder while stills kept working.
+#
+# CCodec.cpp is patched to honour this before it enters
+# Codec2Client::CreateInputSurface(); stock only checks it afterwards, which is
+# why the switch did nothing on its own.
+debug.stagefright.c2inputsurface=-1

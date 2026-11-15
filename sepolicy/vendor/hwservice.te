@@ -1,0 +1,24 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Hwservice labels for the Xiaomi HIDL vendor extensions that the stock
+# fingerprint HAL registers next to
+# android.hardware.biometrics.fingerprint. They are mapped in hwservice_contexts
+# and granted to hal_fingerprint_default; see hal_fingerprint_default.te for the
+# fatal failure that happens without them.
+type hal_xiaomi_fx_tunnel_hwservice, hwservice_manager_type;
+type hal_xiaomi_fingerprint_extension_hwservice, hwservice_manager_type;
+
+# vendor.xiaomi.hardware.displayfeature::IDisplayFeature, served by the Xiaomi
+# display feature HAL and used by the displayfeature daemon for panel control.
+type hal_displayfeature_xiaomi_hwservice, hwservice_manager_type;
+
+# vendor.xiaomi.hardware.touchfeature::ITouchFeature, served by the Xiaomi touch
+# feature HAL. This is the interface that arms the touch controller's FOD mode.
+type hal_touchfeature_xiaomi_hwservice, hwservice_manager_type;
+
+# vendor.xiaomi.hardware.micharge::IMiCharge, served by the Xiaomi charging HAL;
+# see hal_micharge_default.te.
+type hal_micharge_hwservice, hwservice_manager_type;

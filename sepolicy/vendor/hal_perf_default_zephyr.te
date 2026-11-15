@@ -1,0 +1,10 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# QTI's perf HAL writes /sys/devices/virtual/thermal/thermal_message/boost when
+# it applies a boost request. That node carries sysfs_thermal from the QCOM
+# genfscon; the stock bengal policy never granted the write, so every boost
+# produced an AVC denial.
+allow vendor_hal_perf_default sysfs_thermal:file w_file_perms;

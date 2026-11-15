@@ -1,0 +1,31 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Xiaomi's battery anti-aging daemon
+# (/vendor/bin/hw/vendor.xiaomi.hardware.batteryantiaging-service). Its rc
+# requests hal_batteryantiaging_default via seclabel, but that domain did not
+# exist in the loaded policy, so init rejected the service and it never ran.
+# It is the daemon behind the smart/night charging and charge-limit knobs. It
+# is an AIDL vendor service, so it registers with vndservicemanager; the
+# interface needs a service type/context or registration falls back to
+# default_android_service and is denied.
+type hal_batteryantiaging_default, domain;
+type hal_batteryantiaging_default_exec, exec_type, vendor_file_type, file_type;
+type hal_batteryantiaging_service, service_manager_type;
+
+init_daemon_domain(hal_batteryantiaging_default)
+vndbinder_use(hal_batteryantiaging_default)
+add_service(hal_batteryantiaging_default, hal_batteryantiaging_service)
+
+allow hal_batteryantiaging_default vendor_file:dir r_dir_perms;
+allow hal_batteryantiaging_default vendor_file:file { execute getattr map open read };
+allow hal_batteryantiaging_default vendor_file:lnk_file read;
+
+allow hal_batteryantiaging_default sysfs:dir r_dir_perms;
+allow hal_batteryantiaging_default sysfs:file rw_file_perms;
+allow hal_batteryantiaging_default sysfs:lnk_file read;
+
+allow hal_batteryantiaging_default proc:dir r_dir_perms;
+allow hal_batteryantiaging_default proc:file r_file_perms;

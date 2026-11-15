@@ -1,0 +1,17 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# qcom-atel-ready is built into system_ext so it links the system libbinder and
+# talks to the system servicemanager, which is where qcrild registers
+# vendor.qti.hardware.radio.qcrilhook.IQtiOemHook/oemhook{0,1}. The vendor
+# libbinder copy uses a different Parcel header (VNDR instead of SYST), so a
+# vendor binary cannot find that service; see atel-ready/Android.bp.
+type qcom_atel_ready_exec, exec_type, system_file_type, file_type;
+
+init_daemon_domain(qcom_atel_ready, qcom_atel_ready_exec)
+
+# System servicemanager IPC. The vendor policy grants access to the qcrilhook
+# service itself (sepolicy/vendor/qcom_atel_ready.te).
+binder_use(qcom_atel_ready)

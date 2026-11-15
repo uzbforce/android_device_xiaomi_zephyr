@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+
+<!--
+     Regenerated from product/overlay/FrameworksResCommon_Sys.apk of
+     zephyr_global_images_OS3.0.310.0.WBUMIXM_16.0 by tools/port-overlays.py.
+     The values are the ones the stock overlay itself carries.
+-->
+<resources>
+    <integer-array name="config_sms_enabled_locking_shift_tables" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+    </integer-array>
+    <integer-array name="config_sms_enabled_single_shift_tables" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+    </integer-array>
+</resources>

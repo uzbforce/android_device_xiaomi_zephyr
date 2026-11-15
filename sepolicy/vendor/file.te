@@ -1,0 +1,51 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Goodix keeps its factory calibration in /mnt/vendor/persist/goodix
+# (gf_cali_persist.so and its backup) and the pointer to the file is handed to
+# the fingerprint TA. The TEE daemon reads the file on the TA's behalf, so both
+# sides need a label of their own; stock uses exactly this type in its
+# vendor_file_contexts for the same path.
+#
+# Without the label the directory falls back to mnt_vendor_file, which tee has
+# no rule for. qseecomd then cannot read the calibration, the TA never reports
+# SPMT as passed, and every enroll is rejected before the sensor is armed:
+#
+#   avc: denied { read } for comm="qseecomd" name="gf_cali_persist.so"
+#     scontext=u:r:tee:s0 tcontext=u:object_r:mnt_vendor_file:s0 tclass=file
+#   [GF_HAL][CustomizedFingerprintCore]: [prepareEnrollRequest] spmt is not
+#     pass, please to do the process of spmt
+type vendor_fingerprint_data_file, file_type, data_file_type;
+
+# Xiaomi display feature nodes. The Goodix UDFPS HAL drives FOD
+# high-brightness mode through DisplayFeatureControl, which writes the panel
+# parameters under /sys/class/mi_display/disp-DSI-0 (a symlink into
+# /devices/virtual/mi_display/disp_feature) and the /dev/mi_display/disp_feature
+# node. Stock gives both a dedicated type; the generic sysfs/dev labels are
+# never granted write access to vendor domains.
+type vendor_sysfs_displayfeature, sysfs_type, fs_type;
+type vendor_displayfeature_device, dev_type;
+
+# /dev/xiaomi-touch, the xiaomi_tp driver's command interface used by the touch
+# feature HAL; see hal_touchfeature_xiaomi_default.te.
+type xiaomi_touch_device, dev_type;
+
+# /proc/tp_proximity_data and /proc/tp_proximity_switch are the touch
+# controller's ear/near interface. The sensor SSC daemon (sscrpcd, running in
+# vendor_sensors) reads the near/far value from tp_proximity_data and writes
+# tp_proximity_switch to enable the touch controller's proximity reporting for
+# the sensor DSP. That stream is what android.sensor.proximity finally reports.
+# Both nodes fall back to the generic proc label, which vendor_sensors may not
+# read or write, so the proximity stream never receives a real "near" sample
+# and the dialer's ear detection can never blank the screen. Without the switch
+# label, arming the sensor also fails immediately:
+#
+#   avc: denied { read } for comm="sscrpcd" name="tp_proximity_data"
+#     scontext=u:r:vendor_sensors:s0 tcontext=u:object_r:proc:s0 tclass=file
+#   avc: denied { write } for comm="sscrpcd" name="tp_proximity_switch"
+#     scontext=u:r:vendor_sensors:s0 tcontext=u:object_r:proc:s0 tclass=file
+#   sscrpcd: apps_std_fopen_with_env failed with 0xd for
+#     proc/tp_proximity_switch (Permission denied)
+type proc_tp_proximity_data, fs_type, proc_type;

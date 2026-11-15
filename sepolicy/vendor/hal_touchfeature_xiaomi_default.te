@@ -1,0 +1,50 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Xiaomi's touch feature HAL
+# (/vendor/bin/hw/vendor.xiaomi.hardware.touchfeature@1.0-service).
+#
+# It is the component that talks to the FTS touch controller behind
+# vendor.xiaomi.hardware.touchfeature@1.0::ITouchFeature, and it is what puts
+# the touch IC into fingerprint-on-display mode. The Goodix UDFPS HAL does not
+# read the raw touchscreen for finger-down; it polls
+# /sys/devices/virtual/touch/touch_dev/fod_press_status (open as fd 15 in the
+# HAL process) and waits for the touch driver to raise it. The driver only
+# raises it once the touch IC is armed, so without this HAL every enrollment
+# sits at "waiting for finger" until the framework gives up:
+#
+#   [GF_HAL][FingerprintCore]: [enroll] Enroll.
+#   [GF_HAL][FingerprintCore]: [notifyAcquiredInfo] acquired_info=1021
+#   ... 60 s of silence ...
+#   [GF_HAL][FingerprintCore]: [cancel] Cancel received.  err code : 3.
+#
+# The binary shipped unlabeled, so init found no transition and the service
+# never started; the VINTF entry in configs/vintf/manifest.xml was the only
+# half that had been wired up.
+#
+# Its rc also chowns /dev/xiaomi-touch (the touch driver's command node) and
+# /sys/class/touch/tp_dev/fod_status. Keep the domain permissive: the blob
+# pokes an undocumented ioctl/sysfs surface through the touch driver, and a
+# partial rule set would only turn into a silent restart loop.
+type hal_touchfeature_xiaomi_default, domain;
+type hal_touchfeature_xiaomi_default_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(hal_touchfeature_xiaomi_default)
+
+hwbinder_use(hal_touchfeature_xiaomi_default)
+add_hwservice(hal_touchfeature_xiaomi_default, hal_touchfeature_xiaomi_hwservice)
+
+allow hal_touchfeature_xiaomi_default vendor_file:dir r_dir_perms;
+allow hal_touchfeature_xiaomi_default vendor_file:file { execute getattr map open read };
+
+# /dev/xiaomi-touch: the xiaomi_tp driver's command interface. ueventd gives it
+# the generic "device" label, which no vendor domain may touch.
+allow hal_touchfeature_xiaomi_default xiaomi_touch_device:chr_file rw_file_perms;
+
+# /sys/devices/virtual/touch/touch_dev/* (mode, FOD and gesture knobs).
+allow hal_touchfeature_xiaomi_default sysfs:file rw_file_perms;
+allow hal_touchfeature_xiaomi_default sysfs:dir r_dir_perms;
+
+permissive hal_touchfeature_xiaomi_default;

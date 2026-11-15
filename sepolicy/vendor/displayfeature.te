@@ -1,0 +1,31 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Xiaomi's display feature daemon (/vendor/bin/displayfeature). It runs as root,
+# registers the native binder service DisplayFeatureControl with
+# vndservicemanager and writes the mi_display sysfs nodes.
+#
+# This is the service the Goodix UDFPS HAL talks to for FOD high-brightness
+# mode: libdisplayfeature.so resolves DisplayFeatureControl and otherwise logs
+# "displayfeatureservice access denied: command=%d pid=%d uid=%d" and gives up.
+# The daemon had no file_contexts label, so init never transitioned into a
+# domain for it and the service was never registered.
+#
+# It is closed source and touches an undocumented sysfs/ioctl surface, so keep
+# it permissive like mi_thermald until its exact access set is known.
+type displayfeature, domain;
+type displayfeature_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(displayfeature)
+permissive displayfeature;
+
+vndbinder_use(displayfeature)
+binder_use(displayfeature)
+add_service(displayfeature, hal_displayfeature_service)
+
+allow displayfeature vendor_sysfs_displayfeature:dir r_dir_perms;
+allow displayfeature vendor_sysfs_displayfeature:file rw_file_perms;
+allow displayfeature vendor_displayfeature_device:chr_file rw_file_perms;
+allow displayfeature graphics_device:chr_file rw_file_perms;

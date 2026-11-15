@@ -1,0 +1,11 @@
+# vendor_persist_camera_prop is already declared by Lineage's common public
+# policy (device/lineage/sepolicy/common/public/property.te) through
+# system_vendor_config_prop(), and that file is part of the vendor, system_ext,
+# public and recovery policy builds. Declaring the type here as well makes
+# checkpolicy abort with:
+#
+#   ERROR 'Duplicate declaration of type' ... vendor_persist_camera_prop
+#
+# The label itself comes from device/qcom/sepolicy/generic/private/
+# property_contexts and is referenced from both the system_ext and the vendor
+# QCOM policy, which is what the common declaration covers.

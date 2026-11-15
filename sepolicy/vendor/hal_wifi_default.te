@@ -1,0 +1,13 @@
+# The qcwcn HAL (vendor/lib64/libwifi-hal.so) loads and unloads the WLAN driver
+# modules when it switches interface use cases, so it calls init_module() and
+# delete_module(), which need CAP_SYS_MODULE. The service's rc already asks for
+# SYS_MODULE, and system/sepolicy/private/hal_wifi.te grants net_admin and
+# net_raw, but not sys_module, so every attempt was denied:
+#
+#   avc: denied { sys_module } for capability=16 scontext=u:r:hal_wifi_default:s0
+#
+# The HAL then failed the interface creation: the config netlink handler
+# reported "Error code:-19 (No such device)", WifiChipAidlImpl returned
+# WifiStatusCode::ERROR_NOT_AVAILABLE, ClientModeManager never started, and Wi-Fi
+# stayed off (which also hides the hotspot entry in Settings).
+allow hal_wifi_default self:capability sys_module;

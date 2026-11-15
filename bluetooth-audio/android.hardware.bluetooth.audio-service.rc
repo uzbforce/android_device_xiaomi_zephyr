@@ -1,0 +1,10 @@
+service vendor.bluetooth.audio-hal /vendor/bin/hw/android.hardware.bluetooth.audio-service
+    class hal
+    # The audio HAL registers the same singleton when its dlopen succeeds. Only
+    # one process can own IBluetoothAudioProviderFactory/default, so whoever
+    # loses exits with an error; oneshot keeps init from restarting that loser
+    # in a loop.
+    oneshot
+    user audioserver
+    group audio system inet net_bt net_bt_admin
+    capabilities BLOCK_SUSPEND

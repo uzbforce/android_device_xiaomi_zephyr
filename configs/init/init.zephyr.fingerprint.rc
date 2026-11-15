@@ -1,0 +1,35 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+# Setup that used to live in the stock HIDL fingerprint service's .rc
+# (vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service-lx.rc),
+# which this build no longer ships. The HAL is now
+# android.hardware.biometrics.fingerprint-service.lineage, and its own .rc only
+# declares the service, so the node and directory preparation has to happen
+# here.
+
+on post-fs-data
+    mkdir /data/vendor/fpdump 0700 system system
+
+    # /data/vendor_de/<user>/fpdata, the path handed to set_active_group(), is
+    # created by vold_prepare_subdirs (see vold_prepare_subdirs.te) with the
+    # fingerprint_vendor_data_file label, so it is deliberately not created here.
+
+    mkdir /mnt/vendor/persist/fingerprint 0777 system system
+    mkdir /mnt/vendor/persist/fingerprint/fpc 0777 system system
+
+    # The Goodix calibration blob predates this image and is labelled
+    # mnt_vendor_file on /mnt/vendor/persist; relabel it so qseecomd can hand
+    # it to the TA. Same reason the stock rc did this.
+    restorecon_recursive /mnt/vendor/persist/goodix
+
+    # /dev/xiaomi-fp is the goodix FOD driver's control node. ueventd labels it
+    # from device/xiaomi/zephyr/sepolicy/vendor/file_contexts; fix the mode the
+    # driver does not set by itself.
+    chown system system /dev/xiaomi-fp
+    chmod 0644 /dev/xiaomi-fp
+
+    # FOD brightness: the blob writes this node directly for local HBM.
+    chown system system /sys/class/mi_display/disp-DSI-0/disp_param
+    chmod 0777 /sys/class/mi_display/disp-DSI-0/disp_param

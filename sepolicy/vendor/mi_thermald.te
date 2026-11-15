@@ -1,0 +1,43 @@
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Xiaomi's closed-source thermal daemon (vendor/bin/mi_thermald).
+#
+# Its own rc pins the exec context with `seclabel u:r:mi_thermald:s0`. That
+# domain does not exist in this policy (the firmware's binary is not covered by
+# device/qcom/sepolicy_vndr), so init could not apply the transition and the
+# service died five seconds after every start:
+#
+#   F init: cannot setexeccon('u:r:mi_thermald:s0') for mi_thermald: Invalid argument
+#   I init: Service 'mi_thermald' (pid 19189) exited with status 6
+#   E init: process with updatable components 'mi_thermald' exited 4 times in 4 minutes
+#
+# Nothing else applies thermal mitigation here: the firmware's thermal-engine rc
+# ships fully commented out, and android.hardware.thermal-service.qti only
+# reports temperatures and programs trip points. mi_thermald is the component
+# that drives /sys/class/thermal/thermal_message/sconfig and the per-scenario
+# profiles in /odm/etc/thermal-*.conf, including thermal-camera.conf and
+# thermal-video.conf. With it dead the SoC ran unthrottled, the phone got
+# genuinely hot, and the camera profile was never selected, which is what made
+# video capture fall over.
+#
+# The daemon pokes a wide, undocumented set of sysfs nodes, vendor sockets and
+# /data/vendor/thermal files, so it is left permissive. Writing a partial policy
+# from its disassembly would only put it back into the same silent restart loop.
+type mi_thermald, domain;
+type mi_thermald_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(mi_thermald, mi_thermald_exec)
+permissive mi_thermald;
+
+# The thermal daemon probes /sys/class/leds while collecting its inputs. That
+# class directory is sysfs_leds, and its scan was being audited as a denied
+# directory search (the domain is permissive, so it was not fatal):
+#
+#   avc: denied { search } for comm="mi_thermald" name="leds"
+#     scontext=u:r:mi_thermald:s0 tcontext=u:object_r:sysfs_leds:s0 tclass=dir
+#     permissive=1
+#
+# Grant only traversal of the LED class here; the rest of the daemon's broad
+# access set stays permissive and is deliberately not reconstructed.
+allow mi_thermald sysfs_leds:dir search;

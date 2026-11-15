@@ -1,0 +1,23 @@
+# Properties for the product partition.
+
+# Bluetooth profile services.
+#
+# com.android.bluetooth registers a profile service only when the matching
+# bluetooth.profile.<name>.enabled property is true (see
+# Config.PROFILE_SERVICES_AND_FLAGS in the Bluetooth module). Only gatt and
+# asha.central default to true, so with none of these set the adapter comes up
+# with just GATT + HEARING_AID registered: pairing works, but a bonded headset
+# or mouse has no profile service to connect to, so tapping it in Settings does
+# nothing and no connection is ever attempted.
+bluetooth.profile.asha.central.enabled=true
+bluetooth.profile.a2dp.source.enabled=true
+bluetooth.profile.avrcp.target.enabled=true
+bluetooth.profile.gatt.enabled=true
+bluetooth.profile.hfp.ag.enabled=true
+bluetooth.profile.hid.device.enabled=true
+bluetooth.profile.hid.host.enabled=true
+bluetooth.profile.map.server.enabled=true
+bluetooth.profile.opp.enabled=true
+bluetooth.profile.pan.nap.enabled=true
+bluetooth.profile.pan.panu.enabled=true
+bluetooth.profile.pbap.server.enabled=true

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+
+<!--
+     Regenerated from vendor/overlay/FrameworksResTarget_Vendor.apk of
+     zephyr_global_images_OS3.0.310.0.WBUMIXM_16.0 by tools/port-overlays.py.
+     The values are the ones the stock overlay itself carries.
+
+     Changed from the stock value:
+     * config_biometric_sensors: the stock overlay's single "0:2:15" entry
+       describes a *HIDL* sensor. This device now runs the AIDL fingerprint HAL,
+       which AuthService discovers through VINTF instead, so the array is empty.
+       See the comment in the resources block for what the entry broke.
+
+     Not carried over:
+     * config_defaultPinnerServiceFiles:
+       its list names /system/framework/arm64/boot-QPerformance.oat and
+       boot-UxPerformance.oat, which only exist in a HyperOS system image,
+       and overriding the array replaces Lineage's default list outright - a
+       trimmed copy would pin less, not more - so the platform default is
+       left alone
+     * config_qualified_networks_service_package:
+       not declared by LineageOS 23.2 framework-res
+     * config_wlan_data_service_package:
+       not declared by LineageOS 23.2 framework-res
+     * config_wlan_network_service_package:
+       not declared by LineageOS 23.2 framework-res
+-->
+<resources>
+    <!-- No HIDL biometric sensors. The fingerprint HAL is now the AIDL service
+         built from hardware/lineage/interfaces/biometrics/fingerprint/aidl, and
+         AIDL instances are enumerated from the VINTF manifest, not from here.
+
+         Leaving the old "0:2:15" HIDL entry in place is not harmless. AuthService
+         does
+
+             new FingerprintSensorConfigurations(hidlConfigStrings.length == 0)
+
+         and any non-empty HIDL list makes that false, which sends the sensor to
+         FingerprintProvider.addHidlSensors() -> HidlToAidlSensorAdapter. With no
+         IBiometricsFingerprint@2.1 service left to talk to, it fails with
+
+             HidlToAidlSensorAdapter: Fingerprint HAL not available
+             java.util.NoSuchElementException: android.os.HwBinder.getService
+
+         and because the resulting HIDL sensor never becomes usable, Settings
+         stops offering fingerprint enrolment at all. -->
+    <string-array name="config_biometric_sensors" translatable="false" />
+    <string-array name="config_tether_wifi_regexs" translatable="false">
+        <item>softap0</item>
+        <item>wigig0</item>
+    </string-array>
+
+    <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
+    <bool name="config_dozeAlwaysOnEnabled">false</bool>
+    <bool name="config_showNavigationBar">true</bool>
+    <!-- Show the battery percentage in the status bar out of the box. The
+         1080px/420dpi panel is small enough that the icon alone is not
+         readable; the user can still turn it off in Settings > Display. -->
+    <bool name="config_defaultBatteryPercentageSetting">true</bool>
+    <!-- headset detection through the codec input event rather than a switch node -->
+    <bool name="config_useDevInputEventForAudioJack">true</bool>
+
+    <!-- These four values are taken from the two stock device RROs, which are
+         the only place HyperOS actually carries them:
+           product/overlay/DevicesAndroidOverlay.apk:
+             rounded_corner_radius 144px, status_bar_height_* 118px and
+             config_mainBuiltInDisplayCutout
+           product/overlay/DevicesOverlay.apk:
+             rounded_corner_content_padding 100px
+         The panel is 1080x2396 at 420dpi, so 144px = 54.86dp and 118px =
+         44.95dp. 118px is not arbitrary: the notch is exactly 118px deep, and
+         the 113px value used before left its last 5px outside the status bar
+         inset the framework reports. rounded_corner_content_padding was 0dp
+         (copied from FrameworksResTarget_Vendor.apk, which is not the RRO
+         that drives the corners), which is why the clock sat flush against
+         the curved edge: StatusBarContentInsetsProvider takes the larger of
+         this padding and the cutout inset.
+
+         100px is the stock value, but at 420dpi it is ~39dp of dead space on
+         each side. Both the status bar and the QS header consume this same
+         inset (StatusBarContentInsetsProvider feeds PhoneStatusBarView and
+         ShadeHeaderController), and the status bar splits its content into two
+         equal-weight halves, so 100px per side also costs each icon cluster
+         100px of usable width - enough that enabling the network speed meter
+         squeezes the mobile icons out. 70px gives 30px back per side. -->
+    <dimen name="rounded_corner_content_padding">70px</dimen>
+    <dimen name="rounded_corner_radius">54.86dp</dimen>
+    <dimen name="status_bar_height">44.95dp</dimen>
+    <dimen name="status_bar_height_portrait">44.95dp</dimen>
+    <dimen name="status_bar_height_default">44.95dp</dimen>
+
+    <!-- 58x118px notch, centred. The path is written with negative X because
+         CutoutPathParser treats a negative-X path as centred on the display,
+         and no @dp/% suffix because the units are display pixels. Without it
+         the framework reports DisplayCutout{insets=Rect(0,0-0,0)} (verified
+         with dumpsys window displays) and nothing reserves the notch: not the
+         status bar, not the QS header, not app windows. -->
+    <string name="config_mainBuiltInDisplayCutout" translatable="false">M 0,0 H -29 V 118 H 29 V 0 H 0 Z</string>
+</resources>

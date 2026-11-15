@@ -1,0 +1,9 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# init.qcom.rc chowns and chmods the display brightness clone node before the
+# composer starts. The node now has its own type, so init needs setattr on that
+# type rather than the generic sysfs rule it used before.
+allow init sysfs_brightness_clone:file { getattr setattr };
