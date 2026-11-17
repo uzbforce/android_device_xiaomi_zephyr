@@ -41,12 +41,13 @@ PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := true
 PRODUCT_MAX_PAGE_SIZE_SUPPORTED := 4096
 
 # qti_kernel_headers (the TARGET_BOARD_KERNEL_HEADERS view the HALs compile
-# against) lives in a soong namespace of its own. Modules in the root namespace
-# - libvmmem, librmnetctl, the display trees - only see namespaces listed here:
-# soong appends a namespace to the root namespace's visibility list only when
-# its path is in PRODUCT_SOONG_NAMESPACES, so without this line they all fail
-# with "module ... missing dependencies: qti_kernel_headers".
-PRODUCT_SOONG_NAMESPACES += hardware/google/pixel/kernel_headers
+# against) used to live in hardware/google/pixel/kernel_headers, whose soong
+# namespace had to be listed here. Android 17 moved the module to
+# hardware/qcom-caf/common/Android.bp, and that directory declares no
+# soong_namespace, so the module sits in the root namespace and needs no
+# import. The old namespace no longer exists at all; listing it is what made
+# soong abort with "namespace hardware/google/pixel/kernel_headers does not
+# exist" once the sm6225 tree was added.
 
 # The QCOM platform trees below declare their own soong_namespace, and nothing
 # in this BoardConfig includes hardware/qcom-caf/common/BoardConfigQcom.mk (it
@@ -664,3 +665,9 @@ PRODUCT_PACKAGES += \
     vendor_bt_firmware_mountpoint \
     vendor_dsp_mountpoint \
     vendor_firmware_mnt_mountpoint
+
+# A17 treble-labeling gate (BOARD_API_LEVEL >= 202604): PowerOffAlarm.apk is a
+# stock system_ext app labeled by the sm6225 vendor seapp_contexts. The known
+# split is tracked in sepolicy/tracking_list.yaml rather than rewriting the
+# working vendor policy or moving the stock APK off system_ext.
+PRODUCT_SELINUX_TREBLE_LABELING_TRACKING_LIST_FILE := device/xiaomi/zephyr/sepolicy/tracking_list.yaml

@@ -1,0 +1,10 @@
+# A17 enforces the SELinux treble-labeling split for BOARD_API_LEVEL >= 202604.
+# PowerOffAlarm.apk is a stock Xiaomi/Qualcomm app installed on system_ext, but
+# its label is defined in the sm6225 vendor seapp_contexts with
+# vendor_poweroffalarm_app (a non-coredomain vendor domain). Moving the APK to
+# vendor would change the stock partition layout; moving the label to system_ext
+# would require moving the vendor HAL rules too. Keep the known A16-era split
+# tracked here instead of weakening the vendor policy.
+platform_apps_in_vendor_seapp_contexts:
+  - apk: PowerOffAlarm.apk
+    bug: 0
