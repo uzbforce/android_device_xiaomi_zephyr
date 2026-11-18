@@ -14,6 +14,12 @@ $(call inherit-product, hardware/qcom-caf/common/common.mk)
 
 # Emulated storage / virtual A/B
 $(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
+
+# Installs the developer GSI AVB keys. Android 17 verifies the first-stage
+# dynamic partitions against these before /system exists, so they have to be
+# part of the vendor ramdisk (see BOARD_MOVE_GSI_AVB_KEYS_TO_VENDOR_BOOT).
+$(call inherit-product, $(SRC_TARGET_DIR)/product/developer_gsi_keys.mk)
+
 $(call inherit-product, $(SRC_TARGET_DIR)/product/generic_ramdisk.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/android_t_baseline.mk)
 PRODUCT_VIRTUAL_AB_COMPRESSION_METHOD := gz
@@ -518,7 +524,8 @@ PRODUCT_PACKAGES += \
 # ---------------------------------------------------------------------------
 PRODUCT_PACKAGES += \
     android.hardware.fastboot-service.example_recovery \
-    fastbootd
+    fastbootd \
+    init.qcom.recovery.rc
 
 # ---------------------------------------------------------------------------
 # Uprev shims required by the vendor blobs on this platform

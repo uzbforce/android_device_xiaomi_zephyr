@@ -5,3 +5,18 @@
 
 soong_namespace {
 }
+
+// The stock recovery init file creates /dev/block/bootdevice from
+// ro.boot.bootdevice. Recovery's boot-control HAL needs that path to count
+// slots; without it get_number_slots() reports zero and SetActiveBootSlot()
+// rejects the target slot after an otherwise successful OTA write.
+//
+// This cannot live under recovery/root: this build only auto-copies
+// recovery/res, so a recovery-only prebuilt_etc is what puts it in
+// recovery/root/system/etc/init.
+prebuilt_etc {
+    name: "init.qcom.recovery.rc",
+    src: "recovery/root/system/etc/init/init.qcom.recovery.rc",
+    sub_dir: "init",
+    recovery: true,
+}

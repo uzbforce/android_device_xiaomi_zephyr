@@ -406,6 +406,9 @@ VENDOR_SECURITY_PATCH := 2026-11-05
 
 BOARD_AVB_ENABLE                 := true
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
+# The GSI public keys are referenced by fstab's avb_keys before any dynamic
+# partition is mounted. Keep them in the vendor ramdisk, not /system.
+BOARD_MOVE_GSI_AVB_KEYS_TO_VENDOR_BOOT := true
 
 BOARD_AVB_RECOVERY_ALGORITHM             := SHA256_RSA4096
 BOARD_AVB_RECOVERY_KEY_PATH              := external/avb/test/data/testkey_rsa4096.pem
