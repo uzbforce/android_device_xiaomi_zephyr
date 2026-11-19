@@ -51,7 +51,6 @@ on init
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
     symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
     start vendor.qseecomd
-    start keymaster-4-0
     # Start vold early, as the stock vendor init does. vold waits for /data
     # itself before creating the emulated volume, so starting it here lets
     # StorageManagerService find and mount /storage/emulated/0 at boot.
@@ -81,7 +80,7 @@ on post-fs
     restorecon /dev/miev
 on late-fs
     wait_for_prop hwservicemanager.ready true
-    exec_start wait_for_keymaster
+    class_start early_hal
     mount_all --late
 
 on post-fs-data

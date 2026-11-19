@@ -327,7 +327,8 @@ PRODUCT_PACKAGES += \
     android.hardware.security.rkp-V3-ndk.vendor \
     android.hardware.security.secureclock-V1-ndk.vendor \
     android.hardware.security.sharedsecret-V1-ndk.vendor \
-    libkeymaster_messages.vendor
+    libkeymaster_messages.vendor \
+    libion.vendor
 
 # ---------------------------------------------------------------------------
 # GNSS
@@ -474,6 +475,13 @@ PRODUCT_PACKAGES += \
     libwifi-hal-qcom \
     libwpa_client
 
+# The stock rc starts wpa_supplicant as root, but the AOSP binary drops all
+# capabilities except NET_RAW/NET_ADMIN. Without CAP_DAC_OVERRIDE it cannot
+# traverse the 0770 wifi-owned /data/vendor/wifi, so it can never create its
+# config or add a STA interface (Wi-Fi then falls back to scan-only mode).
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/init/android.hardware.wifi.supplicant-service.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/android.hardware.wifi.supplicant-service.rc
+
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.direct.xml \
@@ -531,6 +539,7 @@ PRODUCT_PACKAGES += \
 # Uprev shims required by the vendor blobs on this platform
 # ---------------------------------------------------------------------------
 PRODUCT_PACKAGES += \
+    libbase_shim \
     libhidlbase_shim \
     libprotobuf-qccshim \
     libui_shim \

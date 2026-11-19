@@ -24,7 +24,10 @@ ro.vendor.localhbm.enable=true
 # fragment, so the sensor description lives here:
 #
 #   type            selects FingerprintSensorType::UNDER_DISPLAY_OPTICAL and,
-#                   with it, the ISession#onPointerDown path that arms FOD
+#                   with it, the ISession#onPointerDown path that arms FOD.
+#                   The wrapper only accepts default/rear, udfps, udfps-us and
+#                   side; `udfps` is the optical under-display value and any
+#                   other string is a fatal UNIMPLEMENTED() abort at startup.
 #   sensor_location is <x>|<y>|<radius> in pixels; 540/2198/89 is this panel's
 #                   sensor centre (also used by config_udfps_sensor_props)
 #   (the libhardware module itself is selected by ro.hardware.fingerprint above)

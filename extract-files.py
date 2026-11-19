@@ -433,6 +433,37 @@ blob_fixups: blob_fixups_user_type = {
     'vendor/lib64/vendor.libdpmframework.so': blob_fixup()
         .add_needed('libhidlbase_shim.so'),
 
+    # libbase replaced WriteStringToFd(std::string, borrowed_fd) with a
+    # std::string_view overload; both of these still import the old symbol, so
+    # health-service.qti cannot link and libavservices_minijail.so fails to
+    # load inside wifidisplayhalservice. It cannot be fixed above the vendor
+    # partition: adding the overload to system libbase makes the many
+    # WriteStringToFd("literal", fd) call sites ambiguous. The vendor copy in
+    # libbase/file.cpp forwards to the string_view version instead.
+    ('vendor/bin/hw/android.hardware.health-service.qti',
+     'vendor/lib64/libavservices_minijail.so',
+     'vendor/lib/libavservices_minijail.so'): blob_fixup()
+        .add_needed('libbase_shim.so'),
+
+    # Further libbase consumers found from the first Android 17 boot: the
+    # sensors multihal could not link, so sensorservice never published and
+    # system_server never finished booting. qguard (init's updatable component),
+    # the battery anti-aging service (base::Trim), the QTI Codec2 HIDL library,
+    # NFC, the RKP extraction tool and the recovery updater all import the same
+    # pre-string_view ABI.
+    ('vendor/bin/dumpsys',
+     'vendor/bin/hw/android.hardware.sensors@2.1-service.multihal',
+     'vendor/bin/qguard',
+     'vendor/bin/rkp_factory_extraction_tool64',
+     'vendor/lib64/libbaa_common.so',
+     'vendor/lib64/libboot_control_qti.so',
+     'vendor/lib64/libcodec2_hidl@1.0.so',
+     'vendor/lib64/librecovery_updater.so',
+     'vendor/lib64/libreference-ril.so',
+     'vendor/lib64/nfc_nci.thn31nfc.tms.so',
+     'vendor/lib64/tms-utils.so'): blob_fixup()
+        .add_needed('libbase_shim.so'),
+
     # Stock's system/etc/ueventd.rc declares the mi_display subsystem and the
     # tree ships AOSP's copy instead; see mi_display_ueventd() above.
     'vendor/etc/ueventd.rc': _mi_display_ueventd(),
