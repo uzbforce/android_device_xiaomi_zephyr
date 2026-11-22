@@ -358,6 +358,21 @@ PRODUCT_PACKAGES += \
     libhwbinder.vendor
 
 # ---------------------------------------------------------------------------
+# Face Unlock (Paranoid Sense / Megvii)
+# ---------------------------------------------------------------------------
+# The app binds to system_server through co.aospa.sense.BIND; the framework
+# registers its weak RGB provider instead of the AIDL face HAL when this prop
+# is set. The feature XML is copied so Settings and apps see the sensor.
+PRODUCT_PACKAGES += \
+    FaceUnlock
+
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    ro.face.sense_service=true
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/android.hardware.biometrics.face.xml
+
+# ---------------------------------------------------------------------------
 # Misc
 # ---------------------------------------------------------------------------
 PRODUCT_PACKAGES += \
@@ -443,7 +458,8 @@ PRODUCT_PACKAGES += \
     android.frameworks.sensorservice@1.0.vendor \
     android.hardware.sensors-service.xiaomi-multihal \
     libsensorndkbridge \
-    sensors.xiaomi.v2
+    sensors.xiaomi.v2 \
+    sensors.xiaomi.zephyr.udfps
 
 # ---------------------------------------------------------------------------
 # Thermal
@@ -617,7 +633,8 @@ PRODUCT_PACKAGES += \
 # ---------------------------------------------------------------------------
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/idc/uinput-goodix.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/uinput-goodix.idc \
-    $(LOCAL_PATH)/configs/idc/uinput-fpc.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/uinput-fpc.idc
+    $(LOCAL_PATH)/configs/idc/uinput-fpc.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/uinput-fpc.idc \
+    $(LOCAL_PATH)/configs/idc/fts_ts.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/fts_ts.idc
 
 # ---------------------------------------------------------------------------
 # Fingerprint

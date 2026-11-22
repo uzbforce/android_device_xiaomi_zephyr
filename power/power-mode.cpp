@@ -18,10 +18,12 @@
 #include <android-base/file.h>
 #include <android-base/logging.h>
 
+#include <array>
 #include <dirent.h>
 #include <fcntl.h>
 #include <linux/input.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 namespace {
@@ -42,9 +44,10 @@ int open_ts_input() {
 
                 fd = open(absolute_path, O_RDWR);
                 if (ioctl(fd, EVIOCGNAME(sizeof(name) - 1), &name) > 0) {
-                    // fts = FocalTech, the rest cover Synaptics TCM, which is
-                    // the primary controller on zephyr (see p19a DTBs).
-                    if (strcmp(name, "fts") == 0 || strcmp(name, "goodix_ts") == 0 ||
+                    // fts_ts is the Focaltech FT3683G input device on zephyr.
+                    // Keep the other names for the shared Lineage extension.
+                    if (strcmp(name, "fts") == 0 || strcmp(name, "fts_ts") == 0 ||
+                            strcmp(name, "goodix_ts") == 0 ||
                             strcmp(name, "NVTCapacitiveTouchScreen") == 0 ||
                             strcmp(name, "synaptics_tcm") == 0 ||
                             strcmp(name, "Synaptics TCM touchscreen") == 0)
@@ -61,14 +64,44 @@ int open_ts_input() {
 
     return fd;
 }
+
+// The touchfeature HAL talks to the xiaomi_tp driver through this node. Its
+// SET_CUR_VALUE ioctl takes a 1 KB int buffer whose payload is [mode, value].
+// The kernel log labels the first field touchId, but fts_set_cur_value() gets
+// buf[0] as the mode and buf[1] as the value. Mode 14 is
+// Touch_Doubletap_Mode; without it fts_ts_suspend() computes gesture_support=0
+// and the controller stops reporting double taps.
+static constexpr int kTouchModeDoubletap = 14;
+static constexpr unsigned long kTouchSetCurValue = 0;
+
+bool set_touch_mode(int mode, int value) {
+    int fd = open("/dev/xiaomi-touch", O_RDWR | O_CLOEXEC);
+    if (fd == -1) {
+        PLOG(ERROR) << "Failed to open /dev/xiaomi-touch";
+        return false;
+    }
+
+    std::array<int, 256> request{};
+    request[0] = mode;
+    request[1] = value;
+
+    int rc = ioctl(fd, kTouchSetCurValue, request.data());
+    close(fd);
+    if (rc == -1) {
+        PLOG(ERROR) << "Failed to set touch mode " << mode << " to " << value;
+        return false;
+    }
+
+    LOG(INFO) << "Touch mode " << mode << " set to " << value;
+    return true;
+}
 }  // anonymous namespace
 
 namespace aidl {
-namespace google {
+namespace android {
 namespace hardware {
 namespace power {
 namespace impl {
-namespace pixel {
 
 static constexpr int kInputEventWakeupModeOff = 4;
 static constexpr int kInputEventWakeupModeOn = 5;
@@ -88,28 +121,37 @@ bool isDeviceSpecificModeSupported(Mode type, bool* _aidl_return) {
 bool setDeviceSpecificMode(Mode type, bool enabled) {
     switch (type) {
         case Mode::DOUBLE_TAP_TO_WAKE: {
+            // Arm the controller's own double-tap gesture before writing the
+            // input event. SYN_CONFIG alone only updates the LCT gesture
+            // bitmask; it does not set doubletap_status.
+            bool touch_mode_ok = set_touch_mode(kTouchModeDoubletap, enabled);
+
             int fd = open_ts_input();
             if (fd == -1) {
                 LOG(WARNING)
                     << "DT2W won't work because no supported touchscreen input devices were found";
                 return false;
             }
-            struct input_event ev;
+            struct input_event ev = {};
             ev.type = EV_SYN;
             ev.code = SYN_CONFIG;
             ev.value = enabled ? kInputEventWakeupModeOn : kInputEventWakeupModeOff;
-            write(fd, &ev, sizeof(ev));
+            ssize_t written = write(fd, &ev, sizeof(ev));
             close(fd);
-            return true;
+            if (written != sizeof(ev)) {
+                PLOG(ERROR) << "Failed to write DT2W input event";
+                return false;
+            }
+            LOG(INFO) << "DT2W " << (enabled ? "enabled" : "disabled");
+            return touch_mode_ok;
         }
         default:
             return false;
     }
 }
 
-}  // namespace pixel
 }  // namespace impl
 }  // namespace power
 }  // namespace hardware
-}  // namespace google
+}  // namespace android
 }  // namespace aidl

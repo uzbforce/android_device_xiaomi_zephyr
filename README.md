@@ -730,9 +730,10 @@ product image. `--list` names them.
    fragment, so how the framework picks it up (`ro.hardware.nfc`) is unverified.
 7. **`mi_ext` is not built.** Stock super has it; Lineage's fstab mounts it
    `nofail`, so any Xiaomi service expecting it will degrade.
-8. **Tap-to-wake** — `TARGET_TAP_TO_WAKE` points at `/proc/tp_gesture`, which no
-   stock DTB references. The power HAL extension handles DT2W through the touch
-   input device instead; drop the property if the node turns out to be absent.
+8. **Tap-to-wake** — the panel is a Focaltech FT3683G, whose gesture interface
+   is `EV_SYN/SYN_CONFIG` on `/dev/input/event3`, not a sysfs node. The QTI power
+   HAL is linked with `libperfmgr-ext-xiaomi`, which sends that event; the old
+   `TARGET_TAP_TO_WAKE` sysfs property is no longer used.
 9. **32-bit apps and the two 32-bit vendor HALs** — stock is a 64-bit + 32-bit
    device (`ro.zygote=zygote64_32`, `armeabi-v7a` in the abilist) and its vendor
    ships 32-bit `android.hardware.cas@1.2-service` and

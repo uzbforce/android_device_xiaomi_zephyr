@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- Match the display's rounded corner radius (54.86dp / 144px at 420dpi)
+         so the sheet's top corners have the same roundness as the screen. -->
+    <dimen name="biometric_dialog_corner_size">54.86dp</dimen>
+</resources>

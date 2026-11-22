@@ -405,29 +405,34 @@ BOOT_SECURITY_PATCH   := 2026-05-05
 VENDOR_SECURITY_PATCH := 2026-11-05
 
 BOARD_AVB_ENABLE                 := true
+# The top-level vbmeta is signed separately from the chained boot/recovery/
+# vbmeta_system images. Without these two lines it falls back to AOSP's public
+# testkey while the chained images use the private key.
+BOARD_AVB_ALGORITHM              := SHA256_RSA4096
+BOARD_AVB_KEY_PATH               := vendor/lineage-priv/keys/avb.pem
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
 # The GSI public keys are referenced by fstab's avb_keys before any dynamic
 # partition is mounted. Keep them in the vendor ramdisk, not /system.
 BOARD_MOVE_GSI_AVB_KEYS_TO_VENDOR_BOOT := true
 
 BOARD_AVB_RECOVERY_ALGORITHM             := SHA256_RSA4096
-BOARD_AVB_RECOVERY_KEY_PATH              := external/avb/test/data/testkey_rsa4096.pem
+BOARD_AVB_RECOVERY_KEY_PATH              := vendor/lineage-priv/keys/avb.pem
 BOARD_AVB_RECOVERY_ROLLBACK_INDEX        := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_RECOVERY_ROLLBACK_INDEX_LOCATION := 1
 
 BOARD_AVB_DTBO_ALGORITHM             := SHA256_RSA4096
-BOARD_AVB_DTBO_KEY_PATH              := external/avb/test/data/testkey_rsa4096.pem
+BOARD_AVB_DTBO_KEY_PATH              := vendor/lineage-priv/keys/avb.pem
 BOARD_AVB_DTBO_ROLLBACK_INDEX        := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_DTBO_ROLLBACK_INDEX_LOCATION := 3
 
 BOARD_AVB_BOOT_ALGORITHM             := SHA256_RSA4096
-BOARD_AVB_BOOT_KEY_PATH              := external/avb/test/data/testkey_rsa4096.pem
+BOARD_AVB_BOOT_KEY_PATH              := vendor/lineage-priv/keys/avb.pem
 BOARD_AVB_BOOT_ROLLBACK_INDEX        := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_BOOT_ROLLBACK_INDEX_LOCATION := 4
 
 BOARD_AVB_VBMETA_SYSTEM                          := product system system_dlkm system_ext
 BOARD_AVB_VBMETA_SYSTEM_ALGORITHM                := SHA256_RSA4096
-BOARD_AVB_VBMETA_SYSTEM_KEY_PATH                 := external/avb/test/data/testkey_rsa4096.pem
+BOARD_AVB_VBMETA_SYSTEM_KEY_PATH                 := vendor/lineage-priv/keys/avb.pem
 BOARD_AVB_VBMETA_SYSTEM_ROLLBACK_INDEX           := $(PLATFORM_SECURITY_PATCH_TIMESTAMP)
 BOARD_AVB_VBMETA_SYSTEM_ROLLBACK_INDEX_LOCATION  := 2
 
@@ -536,11 +541,12 @@ AUDIO_FEATURE_ENABLED_PROXY_DEVICE             := true
 AUDIO_FEATURE_ENABLED_HW_ACCELERATED_EFFECTS   := true
 AUDIO_FEATURE_ENABLED_EXTENDED_COMPRESS_FORMAT := true
 
-# Double-tap-to-wake is implemented in the power HAL extension (power/power-mode.cpp).
-# The hook is consumed by the QTI power HAL; it is not part of AOSP's example HAL,
-# so confirm it is honoured once hardware/qcom-caf/sm6225 is in place.
-TARGET_POWERHAL_MODE_EXT := $(DEVICE_PATH)/power/power-mode.cpp
-TARGET_TAP_TO_WAKE       := "/proc/tp_gesture"
+# The panel is a Focaltech FT3683G, not a Synaptics TCM, and has no
+# in_wakeup_gesture_mode sysfs attribute. Its wake-gesture interface is the
+# EV_SYN/SYN_CONFIG input event consumed by ft3683g_spi. The QTI power HAL's
+# mode-extension hook lets libperfmgr-ext-xiaomi send that event; the old
+# TAP_TO_WAKE_NODE path cannot work on this panel.
+$(call soong_config_set,qtipower,mode_ext_lib,//device/xiaomi/zephyr:libperfmgr-ext-xiaomi)
 
 ENABLE_VENDOR_RIL_SERVICE := true
 

@@ -31,4 +31,19 @@
          sensor circle, underneath the padlock. 126dp = 331px leaves the text
          ~44px above the sensor. -->
     <dimen name="keyguard_indication_margin_bottom">126dp</dimen>
+
+    <!-- Front camera geometry and cutout protection for the keyguard face
+         scanning animation. The camera is centred in the 58x118 notch at
+         (540,59). CameraProtectionLoader uses PathParser, not CutoutPathParser,
+         so this protection path is absolute: x=511..569, y=0..118. -->
+    <string name="config_protectedCameraId" translatable="false">1</string>
+    <string name="config_protectedPhysicalCameraId" translatable="false"></string>
+    <string name="config_frontBuiltInDisplayCutoutProtection" translatable="false">M 511,0 H 569 V 118 H 511 Z</string>
+    <bool name="config_enableDisplayCutoutProtection">true</bool>
+    <integer-array name="config_face_auth_props" translatable="false">
+        <!-- sensorLocationX, sensorLocationY, sensorRadius -->
+        <item>540</item>
+        <item>59</item>
+        <item>29</item>
+    </integer-array>
 </resources>

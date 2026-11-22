@@ -1,0 +1,20 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# The QTI power HAL handles Mode.DOUBLE_TAP_TO_WAKE through its mode extension:
+# libperfmgr-ext-xiaomi opens the Focaltech input device and writes an
+# EV_SYN/SYN_CONFIG event. It joins the input group in the service rc, and this
+# domain needs access to /dev/input and the event character devices. The sysfs
+# rules are kept for the QTI HAL's other sysfs-backed modes.
+allow hal_power_default input_device:dir r_dir_perms;
+allow hal_power_default input_device:chr_file rw_file_perms;
+
+# The extension also arms the FTS double-tap gesture through the xiaomi_tp
+# command node. SYN_CONFIG alone does not set doubletap_status, so the touch
+# controller still suspends gesture mode with AOD off without this ioctl.
+allow hal_power_default xiaomi_touch_device:chr_file rw_file_perms;
+allow hal_power_default sysfs:dir r_dir_perms;
+allow hal_power_default sysfs:file rw_file_perms;
+allow hal_power_default sysfs:lnk_file r_file_perms;

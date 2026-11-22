@@ -1,0 +1,22 @@
+# Xiaomi fingerprint properties. Stock maps persist.vendor.sys.fp.* to
+# vendor_fp_prop; AOSP's default vendor_system_prop mapping makes vendor_init
+# refuse to load the FOD geometry from /vendor/build.prop:
+#
+#   avc: denied { set } for property=persist.vendor.sys.fp.fod.location.X_Y
+#     scontext=u:r:vendor_init:s0 tcontext=u:object_r:vendor_system_prop:s0
+#     tclass=property_service
+type vendor_fp_prop, property_type;
+type vendor_fp_info_prop, property_type;
+
+allow vendor_init vendor_fp_prop:property_service set;
+allow vendor_init vendor_fp_info_prop:property_service set;
+
+get_prop(hal_fingerprint_default, vendor_fp_prop)
+get_prop(hal_fingerprint_default, vendor_fp_info_prop)
+
+# The Goodix HAL publishes persist.vendor.sys.fp.vendor and
+# persist.vendor.sys.fp.bigdata.type after it opens the lower HAL. Those names
+# were remapped from vendor_system_prop to the fingerprint-specific types, so
+# the HAL needs set access in addition to the read access above.
+set_prop(hal_fingerprint_default, vendor_fp_prop)
+set_prop(hal_fingerprint_default, vendor_fp_info_prop)

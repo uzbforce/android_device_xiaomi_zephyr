@@ -100,4 +100,8 @@
          with dumpsys window displays) and nothing reserves the notch: not the
          status bar, not the QS header, not app windows. -->
     <string name="config_mainBuiltInDisplayCutout" translatable="false">M 0,0 H -29 V 118 H 29 V 0 H 0 Z</string>
+
+    <!-- Do not set config_fillMainBuiltInDisplayCutout. Filling the cutout draws
+         a persistent black rectangle over the notch on the lockscreen. The
+         face-scanning provider is gated on the real cutout instead. -->
 </resources>

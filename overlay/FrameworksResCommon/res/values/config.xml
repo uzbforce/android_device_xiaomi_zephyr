@@ -235,6 +235,13 @@
     <bool name="config_device_wfc_ims_available">true</bool>
     <bool name="config_dozeAlwaysOnDisplayAvailable">true</bool>
     <bool name="config_dozeAlwaysOnEnabled">false</bool>
+    <!-- The touch controller supports double-tap wake independently of AOD.
+         PowerManagerService only reads Settings.Secure.DOUBLE_TAP_TO_WAKE and
+         sends Mode.DOUBLE_TAP_TO_WAKE to the power HAL when this is true; the
+         Settings display switch is gated on the same resource. SettingsProvider
+         defaults def_double_tap_to_wake to true, so this is enabled out of the
+         box while still allowing the user to turn it off. -->
+    <bool name="config_supportDoubleTapWake">true</bool>
     <bool name="config_enableMultiUserUI">true</bool>
     <bool name="config_enable_iwlan_handover_policy">false</bool>
     <bool name="config_enhanced_iwlan_handover_check">false</bool>
@@ -276,6 +283,21 @@
         <item>2198</item>
         <item>89</item>
     </integer-array>
+
+    <!-- Let the Goodix UDFPS authenticate while the display is off. This is the
+         availability gate for the AOSP/Lineage "Unlock when screen is off"
+         toggle in Settings > Security > Fingerprint; it stays user-controlled
+         and is off until that switch is enabled. -->
+    <bool name="config_screen_off_udfps_enabled">true</bool>
+
+    <!-- The vendor SSC AOD sensor is a special-trigger sensor, which AOSP's
+         requestTriggerSensor() rejects. The device-owned sensors sub-HAL
+         exposes a normal one-shot wakeup sensor instead and arms the touch
+         panel's FOD mode while Doze has it active. It reports only a trigger
+         value, so the framework fills in the fixed UDFPS center from
+         config_udfps_sensor_props. -->
+    <string name="config_dozeUdfpsLongPressSensorType" translatable="false">org.lineageos.sensor.udfps</string>
+    <bool name="config_screen_off_udfps_default_on">true</bool>
 
     <string name="config_dozeComponent" translatable="false">com.android.systemui/com.android.systemui.doze.DozeService</string>
     <string name="config_mms_user_agent" translatable="false">Android-Mms/2.0</string>
