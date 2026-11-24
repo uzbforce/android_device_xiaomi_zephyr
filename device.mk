@@ -24,8 +24,12 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/generic_ramdisk.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/android_t_baseline.mk)
 PRODUCT_VIRTUAL_AB_COMPRESSION_METHOD := gz
 
-# Dalvik heap for 6 GB of RAM
-$(call inherit-product, frameworks/native/build/phone-xhdpi-6144-dalvik-heap.mk)
+# Dalvik heap for 4 GB of RAM. The booted device reports MemTotal 3,719,180 kB
+# (~3.7 GiB), but the tree inherited the 6 GB table, which sets
+# heapgrowthlimit=256m and heapmaxfree=32m. Use the 4 GB table (192m/16m) so
+# app heaps target the RAM this SKU actually has; heapsize stays 512m for
+# largeHeap apps.
+$(call inherit-product, frameworks/native/build/phone-xhdpi-4096-dalvik-heap.mk)
 
 # Proprietary vendor repo (generated from proprietary-files.txt)
 $(call inherit-product, vendor/xiaomi/zephyr/zephyr-vendor.mk)
@@ -550,6 +554,13 @@ PRODUCT_PACKAGES += \
     android.hardware.fastboot-service.example_recovery \
     fastbootd \
     init.qcom.recovery.rc
+
+# Recovery does not mount vendor_dlkm, and only recovery/res is auto-copied, so
+# copy the touch modules to the paths init loads explicitly.
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/recovery/root/vendor_dlkm/lib/modules/xiaomi_tp.ko:$(TARGET_COPY_OUT_RECOVERY)/root/vendor_dlkm/lib/modules/xiaomi_tp.ko \
+    $(LOCAL_PATH)/recovery/root/vendor_dlkm/lib/modules/lct_tp.ko:$(TARGET_COPY_OUT_RECOVERY)/root/vendor_dlkm/lib/modules/lct_tp.ko \
+    $(LOCAL_PATH)/recovery/root/vendor_dlkm/lib/modules/ft3683g_spi.ko:$(TARGET_COPY_OUT_RECOVERY)/root/vendor_dlkm/lib/modules/ft3683g_spi.ko
 
 # ---------------------------------------------------------------------------
 # Uprev shims required by the vendor blobs on this platform

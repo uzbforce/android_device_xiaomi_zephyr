@@ -1,0 +1,11 @@
+#
+# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# cnss_diag writes and rotates firmware logs in /data/vendor/wlan_logs. The QCOM
+# wcnss policy already grants create_dir_perms/create_file_perms on
+# vendor_wifi_vendor_log_data_file in userdebug builds, but it does not grant
+# the read/write directory permissions needed once the directory exists. The
+# path label is supplied by file_contexts and applied by init.target.rc.
+allow vendor_wcnss_service vendor_wifi_vendor_log_data_file:dir rw_dir_perms;

@@ -2,7 +2,7 @@
 <!--
     Copy this file to .repo/local_manifests/zephyr.xml before `repo sync`.
 
-    LineageOS 23.2 has no sm6225 platform tree: hardware/qcom-caf/sm6225 and
+    LineageOS 24.0 has no sm6225 platform tree: hardware/qcom-caf/sm6225 and
     device/qcom/sepolicy_vndr/sm6225 do not exist in the LineageOS org, and its
     bengal devices run the legacy-UM policy with QCOM_HARDWARE_VARIANT :=
     sm8250. Zephyr's blobs are 5.15-era (composer@3.0, audio@7.1), so the
@@ -17,8 +17,9 @@
     hardware_qcom-caf_common fork, which is android_hardware_qcom-caf_common
     here.
 
-    The revisions are the commits validated on 2026-10-27. A mirror push carries
-    every branch and tag, so refreshing a mirror does not invalidate them;
+    The revisions are pinned to the commits the current build used. A mirror
+    push carries every branch and tag, so refreshing a mirror does not
+    invalidate them;
     refresh with tools/publish-platform-repos.sh uzbforce, and give that script
     another owner plus its rewrite-manifest flag to repoint this file at a
     different org.
@@ -44,7 +45,7 @@
 
     <project path="hardware/qcom-caf/common"
              name="uzbforce/android_hardware_qcom-caf_common"
-             revision="13ccfb8d9c32edd33be58467d4490f6236c768e3"
+             revision="5984fede9b8463a44db1f5a58500cf128eb612bd"
              remote="github">
         <linkfile src="os_pickup_aosp.mk" dest="hardware/qcom/Android.mk" />
         <linkfile src="os_pickup_sepolicy_vndr.mk" dest="device/qcom/sepolicy_vndr/SEPolicy.mk" />
@@ -59,7 +60,7 @@
              stops with "module ... already defined" for modules every
              platform tree defines (audio_extn, libstagefrighthw,
              libqcompostprocbundle, ...). msm8996 is commented out upstream
-             and absent in 23.2, so it is not listed. -->
+             and absent in 24.0, so it is not listed. -->
         <linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/msm8953/Android.bp" />
         <linkfile src="os_pickup.bp" dest="hardware/qcom-caf/msm8998/Android.bp" />
         <linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sdm660/Android.bp" />
@@ -78,31 +79,31 @@
          display headers (display/drm/sde_drm.h, display/msm/sde_drm.h) that the
          open source kernel tree does not ship, so the graphics stack stays the
          stock vendor blobs. See the display section in device/xiaomi/zephyr/device.mk. -->
-    <project path="hardware/qcom-caf/sm6225/media"
-             name="uzbforce/android_hardware_qcom-caf_sm6225_media"
-             revision="03414335fa7fa9783a51a9e6ac38f6cbd9029205" remote="github" />
+    <!-- No hardware/qcom-caf/sm6225/media: the stock media blobs are packaged
+         from the vendor repo, and adding the source tree duplicates the same
+         libraries. -->
     <project path="hardware/qcom-caf/sm6225/audio/agm"
              name="uzbforce/android_hardware_qcom-caf_sm6225_audio_agm"
-             revision="0e2e45e0891bd8f0059e9c6af02868e66da26e4d" remote="github" />
+             revision="e3129f4900c9b7cc16f045d883b510e9d0bb449a" remote="github" />
     <project path="hardware/qcom-caf/sm6225/audio/pal"
              name="uzbforce/android_hardware_qcom-caf_sm6225_audio_pal"
-             revision="1ea13648bac9fc36318b606f4a0fac9826523a1c" remote="github" />
+             revision="e8df3187959b0b08cfa964a78c36ab2d3fb3c1a2" remote="github" />
     <project path="hardware/qcom-caf/sm6225/audio/primary-hal"
              name="uzbforce/android_hardware_qcom-caf_sm6225_audio_primary-hal"
-             revision="6f77f956487bddc892b0a054fe00de05638f724d" remote="github" />
+             revision="3a9ea814fefa40ce815066fe231a4c6ab81859a1" remote="github" />
     <project path="hardware/qcom-caf/sm6225/data-ipa-cfg-mgr"
              name="uzbforce/android_hardware_qcom-caf_sm6225_data-ipa-cfg-mgr"
-             revision="9252e280accd6a2799fa7e01969abd11104fe8c8" remote="github" />
+             revision="3e33492e5aa7581d815843573005e13fc2cec25a" remote="github" />
     <project path="hardware/qcom-caf/sm6225/dataipa"
              name="uzbforce/android_hardware_qcom-caf_sm6225_dataipa"
-             revision="e685fc9276f294e87c5d2548241ff73b5ac8286c" remote="github" />
+             revision="cf8702206e354dc12485fb21d2dd0ed69cc28936" remote="github" />
 
     <!-- Nested inside Lineage's device/qcom/sepolicy_vndr checkout. -->
     <project path="device/qcom/sepolicy_vndr/sm6225"
              name="uzbforce/android_device_qcom_sepolicy_vndr_sm6225"
-             revision="5429896afe3169e55f7c5a33e5a15447f5f6ee44" remote="github" />
+             revision="913a662228f34867488f37ba15f7a91e59bd4f96" remote="github" />
     <!-- Google apps: MindTheGapps inline-build tree, pinned to the Android 16
          (baklava) release the OTA was built from. -->
     <project path="vendor/gapps" name="MindTheGapps/vendor_gapps"
-             revision="9336b2ae858b0a5ca05f07925220face91aadfa7" remote="github" />
+             revision="822ff6a805533792ae43a9c3f2a159222da22a6f" remote="github" />
 </manifest>

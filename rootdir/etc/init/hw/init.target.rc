@@ -87,6 +87,9 @@ on post-fs-data
     mkdir /vendor/data/tombstones 0771 system system
     #add for wifi 9434 log
     mkdir /data/vendor/wlan_logs 0770 system wifi
+    # QCOM labels /data/vendor/wifi/wlan_logs; this device uses the direct
+    # path, so apply the same label here before cnss_diag starts.
+    restorecon_recursive /data/vendor/wlan_logs
     # Enable WLAN cold boot calibration
     write /sys/kernel/cnss/fs_ready 1
 

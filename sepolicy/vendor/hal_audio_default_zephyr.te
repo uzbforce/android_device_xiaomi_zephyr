@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-# The QTI audio HAL's FSMoniter thread walks /sys/class/power_supply and needs
-# search access to the battery supply directory. It does not read the values;
-# grant only directory traversal, not file reads.
+# The QTI audio HAL's FSMoniter thread walks /sys/class/power_supply and reads
+# the battery capacity/voltage while monitoring playback. Grant traversal and
+# read-only access to the battery attributes; no writes.
 allow hal_audio_default sysfs_batteryinfo:dir search;
+allow hal_audio_default sysfs_batteryinfo:file { getattr open read };

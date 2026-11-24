@@ -4,5 +4,10 @@
 #
 
 # The USB QTI HAL probes the display backlight node while enumerating USB
-# configurations. It only needs to traverse the graphics sysfs directory.
+# configurations and reads the current brightness. It also looks for a `usb`
+# child under the battery supply; this kernel does not create that child, so
+# without search permission the lookup is audited every few seconds before
+# returning ENOENT.
 allow vendor_hal_usb_qti vendor_sysfs_graphics:dir search;
+allow vendor_hal_usb_qti vendor_sysfs_graphics:file { getattr open read };
+allow vendor_hal_usb_qti sysfs_batteryinfo:dir search;

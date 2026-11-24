@@ -41,3 +41,31 @@ permissive mi_thermald;
 # Grant only traversal of the LED class here; the rest of the daemon's broad
 # access set stays permissive and is deliberately not reconstructed.
 allow mi_thermald sysfs_leds:dir search;
+
+# It also samples the charger current and both panel brightness nodes while
+# collecting thermal inputs. These were the remaining repeated denials in
+# dmesg (all permissive=1, so they only added audit noise):
+#
+#   avc: denied { search } for name="battery" ...
+#     tcontext=u:object_r:sysfs_batteryinfo:s0 tclass=dir
+#   avc: denied { read } for name="current_now" ...
+#     tcontext=u:object_r:sysfs_batteryinfo:s0 tclass=file
+#   avc: denied { search } for name="backlight" ...
+#     tcontext=u:object_r:vendor_sysfs_graphics:s0 tclass=dir
+#   avc: denied { read } for name="brightness" ...
+#     tcontext=u:object_r:vendor_sysfs_graphics:s0 tclass=file
+#   avc: denied { read } for name="brightness_clone" ...
+#     tcontext=u:object_r:sysfs_brightness_clone:s0 tclass=file
+#
+# Grant only those reads and the directory traversal they need. The daemon is
+# still permissive; this does not hand it write access to the panel.
+allow mi_thermald sysfs_batteryinfo:dir search;
+allow mi_thermald sysfs_batteryinfo:file { getattr open read };
+allow mi_thermald vendor_sysfs_graphics:dir search;
+allow mi_thermald vendor_sysfs_graphics:file { getattr open read };
+allow mi_thermald sysfs_brightness_clone:file { getattr open read };
+
+# It also enumerates /sys/class while selecting the nodes above. This is
+# read-only directory traversal; the domain remains permissive and no writes
+# are granted.
+allow mi_thermald sysfs:dir { getattr open read search };

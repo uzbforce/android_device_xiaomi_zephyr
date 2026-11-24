@@ -68,3 +68,10 @@
 # the domain with seclabel, but labeling the binary keeps the normal
 # init_daemon_domain transition available as well.
 /(vendor|system/vendor)/bin/hw/vendor\.xiaomi\.hardware\.batteryantiaging-service u:object_r:hal_batteryantiaging_default_exec:s0
+
+# QTI cnss_diag writes WLAN firmware logs under /data/vendor/wlan_logs. QCOM's
+# policy only labels /data/vendor/wifi/wlan_logs, so this path fell back to
+# vendor_data_file and cnss_diag was denied read/write/setattr every few
+# seconds. The init script relabels it at post-fs-data; see
+# init.target.rc and vendor_init_zephyr.te.
+/data/vendor/wlan_logs(/.*)?    u:object_r:vendor_wifi_vendor_log_data_file:s0

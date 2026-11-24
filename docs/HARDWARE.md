@@ -35,8 +35,8 @@ A single tree can cover all four by keeping the SKU dirs.
 
 ## SoC / platform
 
-- `ro.board.platform=bengal`, `ro.soc.manufacturer=QTI`, `ro.hardware.egal=adreno`, `ro.hardware.vulkan=adreno`
-- Snapdragon 6s 4G Gen 2 (SM6225-AF), Adreno 702
+- `ro.board.platform=bengal`, `ro.soc.manufacturer=QTI`, `ro.hardware.egl=adreno`, `ro.hardware.vulkan=adreno`
+- Snapdragon 6s 4G Gen 2 (SM6225-AF), Adreno 702 per the stock image; the booted kernel reports `Adreno610v2` via kgsl
 - `TARGET_BOARD_PLATFORM := bengal`, `TARGET_BOOTLOADER_BOARD_NAME := bengal`
 - DT `qcom,msm-id = <0x206 0x10000>` on the p19a overlays (0x24a/0x249 variants also present)
 - UFS 2.2 (`ufshc_mem`, `qcom,ufs-phy-qmp-*`), LPDDR4X
@@ -193,7 +193,7 @@ HAL: `android.hardware.sensors@2.1-service.multihal`,
 ## Misc
 
 - `ro.product.first_api_level=36`, `ro.hardware.keystore_desede=true`,
-  `ro.hardware.egal=adreno`
+  `ro.hardware.egl=adreno`
 - Security patch level in image: `2026-05-05`
 - `avb` enabled everywhere; bootloader unlock required for any of this to boot
 - `aboot`/`xbl` chain is SM6225 `bengal`; `vbmeta` flags in the package disables

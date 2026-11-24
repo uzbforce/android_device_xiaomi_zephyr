@@ -180,3 +180,8 @@ allow hal_fingerprint_default vendor_displayfeature_device:chr_file rw_file_perm
 # displayfeature counterpart was already granted; this one was missing.
 allow hal_fingerprint_default hal_touchfeature_xiaomi_hwservice:hwservice_manager find;
 binder_call(hal_fingerprint_default, hal_touchfeature_xiaomi_default)
+
+# libmifpext raises the FOD engine thread priority with setpriority(), which was
+# denied because the HAL domain had no sys_nice capability. Grant only that
+# capability; this does not add access to any device or sysfs node.
+allow hal_fingerprint_default self:capability sys_nice;

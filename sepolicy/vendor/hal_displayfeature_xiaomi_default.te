@@ -48,5 +48,16 @@ binder_call(hal_graphics_composer_default, hal_displayfeature_xiaomi_default)
 # widen composer access to the rest of the display feature subtree.
 allow hal_graphics_composer_default sysfs_brightness_clone:file w_file_perms;
 
+# The panel backlight is labelled vendor_sysfs_graphics, not the generic sysfs
+# label. The daemon reads and writes the brightness node during FOD and panel
+# feature transitions, and also needs to traverse the backlight class.
+allow hal_displayfeature_xiaomi_default vendor_sysfs_graphics:dir search;
+allow hal_displayfeature_xiaomi_default vendor_sysfs_graphics:file rw_file_perms;
+
+# The daemon opens the hwservicemanager and vendor mpctl property areas during
+# start-up. These are read-only property accesses.
+allow hal_displayfeature_xiaomi_default hwservicemanager_prop:file { getattr open read };
+allow hal_displayfeature_xiaomi_default vendor_mpctl_prop:file { getattr map open read };
+
 # Closed-source panel HAL with an undocumented sysfs surface.
 permissive hal_displayfeature_xiaomi_default;

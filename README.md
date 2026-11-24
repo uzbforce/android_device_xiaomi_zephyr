@@ -473,17 +473,29 @@ LineageOS 23.2 `BoardConfigQcom.mk`, `qcom_defs.mk` and
 
 ### Recovery
 
-Recovery here is Lineage/AOSP recovery, not TWRP, and it is key-only: this is a
-`user` build, so volume/power navigation is the supported input. The panel is a
-`focaltech,ft3683g` SPI node, whose driver is `ft3683g_spi`; `focaltech_fts` is
-the I2C driver for the other panel variant (`focaltech,fts_ts`) and cannot load
-on the stock kernel (`qts_client_register` is not exported).
+Recovery here is Lineage/AOSP recovery, not TWRP. Touch is brought up from the
+stock `vendor_dlkm` modules by second-stage recovery init; volume/power remain
+available as fallback. The panel is a `focaltech,ft3683g` SPI node, whose driver
+is `ft3683g_spi`; `focaltech_fts` is the I2C driver for the other panel variant
+(`focaltech,fts_ts`) and cannot load on the stock kernel (`qts_client_register`
+is not exported).
 
-`ft3683g_spi` is still not loaded in recovery. In the first stage it probes
-before `/vendor` is mounted and panics the kernel, so the OEM logo goes black
-and the bootloader loops back into recovery with the BCB still set; only a full
-stock flash clears it. `modules.load.recovery` therefore stays the stock
-296-entry list. Do not add the touch modules there.
+`ft3683g_spi` must not be added to `modules.load.recovery`: in the first stage
+it probes before its dependencies are loaded and panics the kernel, so the OEM
+logo goes black and the bootloader loops back into recovery with the BCB still
+set; only a full stock flash clears it. `modules.load.recovery` therefore stays
+the stock 296-entry list. Recovery does not mount the `vendor_dlkm` partition,
+so the three modules are staged at `recovery/root/vendor_dlkm/lib/modules`,
+copied into the recovery image by `device.mk`, and `init.qcom.recovery.rc` loads
+`xiaomi_tp`, `lct_tp` and `ft3683g_spi` from `/vendor_dlkm/lib/modules` in its
+`on fs` action. The other dependencies (`miev`, `hardware_info`,
+`lx_charger_class`, `panel_event_notifier`, `spi-msm-geni`, `msm_drm`) are
+already in the recovery first-stage list.
+
+The driver asks for `focaltech_ts_fw_sanxing.bin` through `request_firmware`,
+which recovery does not carry; it logs the failed request and continues with the
+controller's existing firmware, and touch works. The `ft3610_p19a*.ini` files
+in the vendor image are not that filename and are not needed in recovery.
 
 The `user` build intentionally removes **Enable ADB**, **Mount/unmount system**
 and **Format system** from recovery (`recovery_main.cpp` keeps them for
@@ -515,12 +527,11 @@ project (`error: project hardware/qcom-caf not found`).
 It swaps Lineage's `hardware/qcom-caf/common` — and the five projects that tree
 replaces — for the SM6225 platform set (Redmi Note 12 4G: also SM6225, also
 Android 16), mirrored into the `uzbforce` org from the `rn124g-development`
-forks and pinned to commits validated on 2026-10-27, and adds:
+forks and pinned to the commits the current build used, and adds:
 
 | Path | Contents |
 |---|---|
 | `hardware/qcom-caf/common` | fork; `_515` → `sm6225`, pickup files |
-| `hardware/qcom-caf/sm6225/media` | media codecs |
 | `hardware/qcom-caf/sm6225/audio/{agm,pal,primary-hal}` | audio HAL |
 | `hardware/qcom-caf/sm6225/data-ipa-cfg-mgr`, `.../dataipa` | IPA |
 | `device/qcom/sepolicy_vndr/sm6225` | platform sepolicy |
@@ -533,7 +544,7 @@ repo (see *Blob list notes*). A checkout that already synced the directory has t
 drop the leftovers, otherwise soong still sees modules nothing installs:
 `rm -rf hardware/qcom-caf/sm6225/display`.
 
-The nine are mirrored under `uzbforce` as `android_hardware_qcom-caf_*` and
+The platform set is mirrored under `uzbforce` as `android_hardware_qcom-caf_*` and
 `android_device_qcom_sepolicy_vndr_sm6225`, named from their manifest path —
 `android_<path, / as _>`, which is the LineageOS project name for every platform
 tree and fixes the one upstream that does not follow it
